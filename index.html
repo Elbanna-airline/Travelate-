@@ -594,8 +594,20 @@ input, select, textarea {
 /* ============================================================
    LOGIN
 ============================================================ */
-const _u = btoa("banna"), _p = btoa("aboimran2026");
-function doLogin(){
+https://throbbing-breeze-5d0d.mahmoudelbanna73.workers.dev/
+
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const supabase = createClient('https://travelate1.pages.dev/', 'sb_publishable_61ALXJsxW3-bYwESltkmpA_QG4_Mmxu')
+
+async function login(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) alert('بيانات خاطئة')
+  else {
+    localStorage.setItem('user', JSON.stringify(data.user))
+    showMainApp()
+  }
+}function doLogin(){
   let u=document.getElementById("loginUser").value.trim();
   let p=document.getElementById("loginPass").value.trim();
   if(btoa(u)===_u && btoa(p)===_p){
