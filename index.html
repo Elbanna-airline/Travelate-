@@ -794,13 +794,28 @@ async function inlineConvert(){
   btn.innerHTML='<span class="spin"></span> جارٍ...';
   setInlineStatus("loading","يتم التحليل...");
   try{
-    let res=await fetch(
-      `/api/gemini,
-      {method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({contents:[{parts:[
-          {text:`You are a GDS expert. Extract flight booking data from this image and convert to standard GDS format.\nRULES:\n- Output ONLY the GDS line(s), nothing else\n- GDS format: [SeqNo] [Airline2L] [FlightNo] [From3L] [To3L] [Date7] [DepTime4] [ArrTime4(+1 if next day)] [Status][Pax]\n- Date format: DDMMM (e.g. 22JUN)  Time: 24hr 4 digits (e.g. 2130)\n- Add +1 after arrival if next day. Default status HK1\n- Example: 1 J9 123 KWI CAI 22JUN 2130 0025+1 HK1\nOutput ONLY the GDS lines.`},
-          {inline_data:{mime_type:inlinePasteType,data:inlinePasteB64}}
-        ]}]})}
+    let res = await fetch(
+  `/api/gemini`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          {
+            text: `You are a GDS expert. Extract flight booking data from this image and convert to standard GDS format.\nRULES:\n- Output ONLY the GDS line(s), nothing else\n- GDS format: [SeqNo] [Airline2L] [FlightNo] [From3L] [To3L] [Date7] [DepTime4] [ArrTime4(+1 if next day)] [Status][Pax]\n- Date format: DDMMM (e.g. 22JUN)  Time: 24hr 4 digits (e.g. 2130)\n- Add +1 after arrival if next day. Default status HK1\n- Example: 1 J9 123 KWI CAI 22JUN 2130 0025+1 HK1\nOutput ONLY the GDS lines.`
+          },
+          {
+            inline_data: {
+              mime_type: inlinePasteType,
+              data: inlinePasteB64
+            }
+          }
+        ]
+      }]
+    })
+  }
+)
     );
     let data=await res.json();
     if(data.error) throw new Error(data.error.message);
