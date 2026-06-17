@@ -905,7 +905,7 @@ async function runGemini(){
   document.getElementById("gdsBtnUse").style.display="none";
   try{
     let res=await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+      `/.netlify/functions/gemini`,
       {method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({contents:[{parts:[
           {text:`You are a GDS (Global Distribution System) expert. Extract flight booking data from this image and convert it to standard GDS format.\n\nRULES:\n- Output ONLY the GDS line(s), nothing else, no explanation, no labels\n- GDS format: [SeqNo] [Airline2L] [FlightNo] [From3L] [To3L] [Date7] [DepTime4] [ArrTime4(+1 if next day)] [Status][Pax]\n- Date format: DDMMM (e.g. 22JUN, 05DEC)\n- Time format: 24hr 4 digits (e.g. 2130, 0025)\n- Add +1 after arrival time if next day\n- Status codes: HK=confirmed, RQ=request, SA=space available. Default HK1\n- Example: 1 J9 123 KWI CAI 22JUN 2130 0025+1 HK1\nIf multiple segments exist, output each on its own line with sequence number.\nOutput ONLY the GDS lines.`},
