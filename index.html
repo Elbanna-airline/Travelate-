@@ -1219,9 +1219,12 @@ function cleanFlexible(text){
   return text.split("\n").map(x=>x.trim()).filter(x=>/^(\d+|[tT])[\s\.]+[A-Za-z0-9]{2,3}/i.test(x));
 }
 
-function splitMergedCodes(str){
-  // Detect six-letter IATA blocks (3+3) anywhere in the string and split them
-  return str.replace(/\b([A-Za-z]{3})([A-Za-z]{3})\b/g,'$1 $2');
+function formatAirportCodes(str) {
+  // 1. نقوم بحذف أي مسافات موجودة أولاً لتوحيد النص
+  let cleanStr = str.replace(/\s+/g, '');
+
+  // 2. إذا كان النص يتكون من 6 أحرف، نقوم بوضع مسافة في المنتصف
+  return cleanStr.replace(/([A-Za-z]{3})([A-Za-z]{3})/, '$1 $2');
 }
 
 function parseFlexible(line){
