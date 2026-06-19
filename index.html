@@ -1228,7 +1228,7 @@ function parseFlexible(line){
   let isTransit=/^[tT][\s\.]+/i.test(line.trim());
   let orig=line;
   // Split merged IATA pairs before parsing
-  let expanded=splitMergedCodes(orig);
+  let expanded=formatAirportCodes(orig);
   line=expanded.replace(/^[\s\d]+[\.\s]+/,'').replace(/^[tT][\.\s]+/i,'').trim();
   let acMatch = line.match(/^([A-Za-z0-9]{2,3})\d{0,4}\b/);
   let ac=acMatch?acMatch[1].toUpperCase():"";
