@@ -1352,7 +1352,7 @@ async function generate(){
         let f=trip[0];
         html+=`<div class="line"></div><div class="item leg-title">🛫 ${tT[idx]||'مسار إضافي'} - ${f.airline}</div>`;
         html+=f.date?`<div class="item date-item">📅 تاريخ الرحلة: ${f.date}</div>`:'';
-        html+=`<div class="item">من مطار "${f.from}" ➔ إلى مطار "${f.to}"</div>`;
+        html+=`<div class="item">من مطار "${f.from}" ➔ إلى  "${f.to}"</div>`;
         html+=`<div class="item">موعد الإقلاع ${f.dep}</div>`;
         html+=`<div class="item">موعد الوصول ${f.arr}${f.arrNextDay?` (${f.arrNextDay})`:''}</div>`;
         html+=cabin?`<div class="item">💺 درجة الحجز: ${cabin}</div>`:'';
@@ -1362,7 +1362,7 @@ async function generate(){
         trip.forEach((leg,i)=>{
           html+=`<div class="item leg-title">✈️ ${lT[i]||'الرحلة'} - ${leg.airline}</div>`;
           html+=leg.date?`<div class="item date-item">📅 تاريخ الرحلة: ${leg.date}</div>`:'';
-          html+=`<div class="item">من مطار "${leg.from}" ➔ إلى مطار "${leg.to}"</div>`;
+          html+=`<div class="item">من مطار "${leg.from}" ➔ إلى  "${leg.to}"</div>`;
           html+=`<div class="item">موعد الإقلاع ${leg.dep}</div>`;
           html+=`<div class="item">موعد الوصول ${leg.arr}${leg.arrNextDay?` (${leg.arrNextDay})`:''}</div>`;
           html+=i===0&&cabin?`<div class="item">💺 درجة الحجز: ${cabin}</div>`:'';
