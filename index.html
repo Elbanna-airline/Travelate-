@@ -1460,18 +1460,7 @@ const cities=Object.fromEntries([["KWI","الكويت"],["DXB","دبي"],["AUH",
 <script src="https://maps.googleapis.com/maps/api/js?key="AQ.Ab8RN6I6vzEC96yV17yCCrIr5vZcvVSnhrWiHRebDKCJ2QxyRQ"></script>
 
 <script>
-  // تفعيل خاصية البحث التلقائي
-  const input = document.getElementById('hotel-input');
-  const autocomplete = new google.maps.places.Autocomplete(input, {
-    types: ['lodging'] // هذا الخيار يخبر جوجل أننا نبحث عن "فنادق" فقط
-  });
-
-  // عندما يختار المستخدم فندقاً
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace();
-    console.log(place.name); // هنا سيظهر اسم الفندق الذي اختاره المستخدم
-    alert("لقد اخترت: " + place.name);
-  });
+ 
 </script>
 </body>
 </html>
