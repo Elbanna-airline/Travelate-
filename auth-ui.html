@@ -1,0 +1,322 @@
+<!-- Auth Page - تسجيل/دخول -->
+<div id="authPage" style="display:none; position:fixed; inset:0; background:linear-gradient(135deg, #080d18 0%, #0f1929 100%); z-index:99999; overflow-y:auto;">
+  <button class="theme-toggle-btn" id="authThemeToggleBtn" onclick="toggleTheme()" title="تبديل المظهر" aria-label="تبديل المظهر">🌙</button>
+
+  <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;">
+    <div style="width:100%; max-width:420px;">
+      
+      <!-- Login Form -->
+      <div id="loginForm" class="login-box" style="display:block;">
+        <img class="login-logo"
+          src="https://cdn.corenexis.com/files/c/9845724720.png"
+          onerror="this.style.display='none'"
+          alt="TravELate">
+        <div class="login-title">TravELate</div>
+        <div class="login-sub">تسجيل الدخول</div>
+        
+        <input class="login-field" id="loginEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="email">
+        <input class="login-field" id="loginPassword" type="password" placeholder="كلمة المرور" autocomplete="current-password">
+        
+        <button class="login-btn" onclick="handleLogin()">دخول</button>
+        
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <button class="login-btn" style="flex:1; background:#3f6498; cursor:pointer;" onclick="showSignup()">إنشاء حساب</button>
+          <button class="login-btn" style="flex:1; background:#334155; cursor:pointer;" onclick="showPasswordReset()">نسيت كلمة المرور؟</button>
+        </div>
+        
+        <div class="login-err" id="loginErr"></div>
+      </div>
+
+      <!-- Signup Form -->
+      <div id="signupForm" class="login-box" style="display:none;">
+        <img class="login-logo"
+          src="https://cdn.corenexis.com/files/c/9845724720.png"
+          onerror="this.style.display='none'"
+          alt="TravELate">
+        <div class="login-title">إنشاء حساب جديد</div>
+        <div class="login-sub">انضم إلى TravELate</div>
+        
+        <input class="login-field" id="signupUsername" type="text" placeholder="اسم المستخدم" autocomplete="username">
+        <input class="login-field" id="signupEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="email">
+        <input class="login-field" id="signupPassword" type="password" placeholder="كلمة المرور (8 أحرف على الأقل)" autocomplete="new-password">
+        <input class="login-field" id="signupPasswordConfirm" type="password" placeholder="تأكيد كلمة المرور" autocomplete="new-password">
+        
+        <button class="login-btn" onclick="handleSignup()">إنشاء حساب</button>
+        
+        <button class="login-btn" style="background:#334155; margin-top:8px;" onclick="showLogin()">العودة للدخول</button>
+        
+        <div class="login-err" id="signupErr"></div>
+      </div>
+
+      <!-- Password Reset Form -->
+      <div id="resetForm" class="login-box" style="display:none;">
+        <img class="login-logo"
+          src="https://cdn.corenexis.com/files/c/9845724720.png"
+          onerror="this.style.display='none'"
+          alt="TravELate">
+        <div class="login-title">استعادة كلمة المرور</div>
+        <div class="login-sub">أدخل بريدك الإلكتروني</div>
+        
+        <input class="login-field" id="resetEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="email">
+        
+        <button class="login-btn" onclick="handlePasswordReset()">إرسال رابط الاستعادة</button>
+        
+        <button class="login-btn" style="background:#334155; margin-top:8px;" onclick="showLogin()">العودة للدخول</button>
+        
+        <div class="login-err" id="resetErr"></div>
+      </div>
+
+      <!-- Verify Email Form -->
+      <div id="verifyForm" class="login-box" style="display:none;">
+        <img class="login-logo"
+          src="https://cdn.corenexis.com/files/c/9845724720.png"
+          onerror="this.style.display='none'"
+          alt="TravELate">
+        <div class="login-title">تفعيل البريد الإلكتروني</div>
+        <div class="login-sub">أدخل رمز التفعيل المرسل إلى بريدك</div>
+        
+        <input class="login-field" id="verifyToken" type="text" placeholder="رمز التفعيل" dir="ltr">
+        
+        <button class="login-btn" onclick="handleEmailVerification()">تفعيل الحساب</button>
+        
+        <button class="login-btn" style="background:#334155; margin-top:8px;" onclick="showSignup()">العودة للتسجيل</button>
+        
+        <div class="login-err" id="verifyErr"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// Auth System - نظام المصادقة
+// ============================================================
+
+let authToken = localStorage.getItem('auth-token');
+let currentUser = JSON.parse(localStorage.getItem('current-user') || 'null');
+
+// Show/Hide Forms
+function showLogin() {
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('resetForm').style.display = 'none';
+  document.getElementById('verifyForm').style.display = 'none';
+  clearErrors();
+}
+
+function showSignup() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+  document.getElementById('resetForm').style.display = 'none';
+  document.getElementById('verifyForm').style.display = 'none';
+  clearErrors();
+}
+
+function showPasswordReset() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('resetForm').style.display = 'block';
+  document.getElementById('verifyForm').style.display = 'none';
+  clearErrors();
+}
+
+function showVerify() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('resetForm').style.display = 'none';
+  document.getElementById('verifyForm').style.display = 'block';
+  clearErrors();
+}
+
+function clearErrors() {
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('signupErr').textContent = '';
+  document.getElementById('resetErr').textContent = '';
+  document.getElementById('verifyErr').textContent = '';
+}
+
+// Auth API Calls
+async function handleSignup() {
+  const username = document.getElementById('signupUsername').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value.trim();
+  const passwordConfirm = document.getElementById('signupPasswordConfirm').value.trim();
+
+  const errEl = document.getElementById('signupErr');
+  errEl.textContent = '';
+
+  if (!username || !email || !password || !passwordConfirm) {
+    errEl.textContent = '❌ جميع الحقول مطلوبة';
+    return;
+  }
+
+  if (password !== passwordConfirm) {
+    errEl.textContent = '❌ كلمات المرور غير متطابقة';
+    return;
+  }
+
+  if (password.length < 8) {
+    errEl.textContent = '❌ كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = '❌ ' + (data.error || 'حدث خطأ');
+      return;
+    }
+
+    showToast('✅ تم التسجيل! تحقق من بريدك الإلكتروني');
+    setTimeout(() => showVerify(), 1500);
+  } catch (err) {
+    errEl.textContent = '❌ خطأ في الاتصال: ' + err.message;
+  }
+}
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+
+  const errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+
+  if (!email || !password) {
+    errEl.textContent = '❌ البريد الإلكتروني وكلمة المرور مطلوبان';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = '❌ ' + (data.error || 'بيانات الدخول غير صحيحة');
+      return;
+    }
+
+    authToken = data.token;
+    currentUser = data.user;
+    localStorage.setItem('auth-token', authToken);
+    localStorage.setItem('current-user', JSON.stringify(currentUser));
+    localStorage.setItem('travelate-auth', '1');
+
+    showToast('✅ تم الدخول بنجاح');
+    setTimeout(() => hideAuthPage(), 1500);
+  } catch (err) {
+    errEl.textContent = '❌ خطأ في الاتصال: ' + err.message;
+  }
+}
+
+async function handleEmailVerification() {
+  const token = document.getElementById('verifyToken').value.trim();
+  const errEl = document.getElementById('verifyErr');
+  errEl.textContent = '';
+
+  if (!token) {
+    errEl.textContent = '❌ أدخل رمز التفعيل';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = '❌ ' + (data.error || 'رمز التفعيل غير صحيح');
+      return;
+    }
+
+    showToast('✅ تم تفعيل البريد! سجّل دخولك الآن');
+    setTimeout(() => showLogin(), 1500);
+  } catch (err) {
+    errEl.textContent = '❌ خطأ في الاتصال: ' + err.message;
+  }
+}
+
+async function handlePasswordReset() {
+  const email = document.getElementById('resetEmail').value.trim();
+  const errEl = document.getElementById('resetErr');
+  errEl.textContent = '';
+
+  if (!email) {
+    errEl.textContent = '❌ أدخل بريدك الإلكتروني';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/reset-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = '❌ ' + (data.error || 'حدث خطأ');
+      return;
+    }
+
+    showToast('✅ تم إرسال رابط الاستعادة إلى بريدك');
+    setTimeout(() => showLogin(), 2000);
+  } catch (err) {
+    errEl.textContent = '❌ خطأ في الاتصال: ' + err.message;
+  }
+}
+
+// Check Auth Status
+function checkAuthStatus() {
+  authToken = localStorage.getItem('auth-token');
+  currentUser = JSON.parse(localStorage.getItem('current-user') || 'null');
+
+  if (authToken && currentUser) {
+    hideAuthPage();
+  } else {
+    showAuthPage();
+  }
+}
+
+function showAuthPage() {
+  document.getElementById('authPage').style.display = 'flex';
+  document.getElementById('loginScreen').style.display = 'none';
+  showLogin();
+}
+
+function hideAuthPage() {
+  document.getElementById('authPage').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'none';
+}
+
+function logout() {
+  authToken = null;
+  currentUser = null;
+  localStorage.removeItem('auth-token');
+  localStorage.removeItem('current-user');
+  localStorage.removeItem('travelate-auth');
+  showAuthPage();
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  checkAuthStatus();
+});
+</script>
