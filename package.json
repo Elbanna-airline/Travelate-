@@ -1,0 +1,41 @@
+{
+  "name": "travelate-auth",
+  "version": "1.0.0",
+  "description": "Authentication system for TravELate travel booking app",
+  "type": "module",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step needed for static + serverless'",
+    "test": "node --test api/auth/**/*.test.js",
+    "lint": "eslint api/",
+    "format": "prettier --write 'api/**/*.js'"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.1.2",
+    "crypto": "^1.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.54.0",
+    "prettier": "^3.1.1",
+    "netlify-cli": "^17.20.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "authentication",
+    "jwt",
+    "signup",
+    "login",
+    "email-verification",
+    "password-reset",
+    "travelate"
+  ],
+  "author": "Mahmoud Elbanna",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Elbanna-airline/Travelate-.git"
+  }
+}
