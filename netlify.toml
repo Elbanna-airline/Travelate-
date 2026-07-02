@@ -1,0 +1,133 @@
+# Netlify Configuration for TravELate
+
+[build]
+  # لا يوجد build step مطلوب (موقع ثابت + serverless functions)
+  command = "echo 'Build complete'"
+  functions = "api"
+  publish = "."
+
+# ============================================================
+# بيئة الإنتاج
+# ============================================================
+[context.production]
+  environment = { NODE_ENV = "production" }
+
+# ============================================================
+# بيئة المعاينة (Preview/Staging)
+# ============================================================
+[context.deploy-preview]
+  environment = { NODE_ENV = "staging" }
+
+# ============================================================
+# بيئة التطوير المحلية
+# ============================================================
+[context.development]
+  environment = { NODE_ENV = "development" }
+
+# ============================================================
+# Redirects - توجيه الطلبات
+# ============================================================
+[[redirects]]
+  from = "/api/auth/*"
+  to = "/.netlify/functions/auth/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/gemini"
+  to = "/.netlify/functions/gemini"
+  status = 200
+
+# SPA fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ============================================================
+# Headers - رؤوس الأمان
+# ============================================================
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security headers
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # CORS headers
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    
+    # Cache control
+    Cache-Control = "public, max-age=3600, s-maxage=3600"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    X-Content-Type-Options = "application/json"
+
+# ============================================================
+# Environment Variables - متغيرات البيئة
+# ============================================================
+# أضفها يدويًا في لوحة Netlify أو استخدم:
+# netlify env:set JWT_SECRET "your-secret-key"
+# netlify env:set GEMINI_API_KEY "your-key"
+
+# ============================================================
+# Functions - إعدادات الدوال
+# ============================================================
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/.netlify/functions/:function"
+  to = "/:function"
+  status = 200
+
+# ============================================================
+# Plugins - المكونات الإضافية
+# ============================================================
+# يمكن إضافة plugins للتحسين المستقبلي:
+# [[plugins]]
+#   package = "@netlify/plugin-nextjs"
+
+# ============================================================
+# Monitoring - المراقبة
+# ============================================================
+[functions."auth/signup"]
+  name = "signup"
+  handler = "signup.handler"
+  timeout = 30
+
+[functions."auth/login"]
+  name = "login"
+  handler = "login.handler"
+  timeout = 30
+
+[functions."auth/verify"]
+  name = "verify"
+  handler = "verify.handler"
+  timeout = 30
+
+[functions."auth/reset-request"]
+  name = "reset-request"
+  handler = "resetRequest.handler"
+  timeout = 30
+
+[functions."auth/reset"]
+  name = "reset"
+  handler = "reset.handler"
+  timeout = 30
+
+[functions."gemini"]
+  name = "gemini"
+  handler = "gemini.handler"
+  timeout = 60
