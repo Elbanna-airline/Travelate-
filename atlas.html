@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1043,12 +1041,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
     margin-bottom:20px;
   }
   .country-head .flag-badge{
-    width:46px; height:46px; flex-shrink:0;
+    width:48px; height:48px; flex-shrink:0;
     border-radius:50%;
-    background:var(--accent, var(--primary));
+    background:var(--surface);
+    border:2.5px solid var(--accent, var(--primary));
     display:flex; align-items:center; justify-content:center;
-    font-size:22px;
-    box-shadow:var(--shadow-md);
+    font-size:24px;
+    box-shadow:0 3px 10px rgba(0,0,0,.12), 0 0 0 4px rgba(255,255,255,.6) inset;
   }
   .country-head h3{
     margin:0; font-size:clamp(19px,2.3vw,24px); font-weight:700;
@@ -1126,7 +1125,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
     padding:16px 0;
     position:relative;
   }
-  .ticket .stub .flag{ font-size:22px; }
+  .ticket .stub .flag{
+    font-size:22px;
+    width:38px; height:38px;
+    border-radius:50%;
+    background:rgba(255,255,255,.22);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+  }
   .ticket .stub .country{
     writing-mode:vertical-rl;
     text-orientation:mixed;
@@ -1570,6 +1576,75 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .hotels-city-header .city-info{ flex:1; }
   .hotels-city-header .city-name{ font-weight:800; font-size:18px; color:var(--ink); }
   .hotels-city-header .city-count{ font-size:12px; color:var(--muted); }
+
+  /* ===================== AI Assistant Widget ===================== */
+  #ai-fab{
+    position:fixed; left:24px; bottom:24px; z-index:1200;
+    display:flex; align-items:center; gap:8px;
+    background:var(--primary); color:#fff; border:none;
+    padding:13px 20px; border-radius:999px; font-weight:800; font-size:14px;
+    box-shadow:var(--shadow-lg); cursor:pointer; font-family:inherit;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  #ai-fab:hover{ transform:translateY(-2px) scale(1.03); box-shadow:0 16px 34px -10px rgba(15,23,42,.28); }
+  #ai-fab .dot{ width:8px; height:8px; border-radius:50%; background:#4ADE80; box-shadow:0 0 0 0 rgba(74,222,128,.6); animation:ai-pulse 1.8s infinite; }
+  @keyframes ai-pulse{ 0%{box-shadow:0 0 0 0 rgba(74,222,128,.55);} 70%{box-shadow:0 0 0 8px rgba(74,222,128,0);} 100%{box-shadow:0 0 0 0 rgba(74,222,128,0);} }
+
+  #ai-overlay{
+    display:none; position:fixed; inset:0; background:rgba(15,23,42,.45);
+    z-index:1300; backdrop-filter:blur(2px); align-items:flex-end; justify-content:flex-start;
+  }
+  #ai-overlay.open{ display:flex; }
+  #ai-modal{
+    width:min(420px, 100vw); height:min(640px, 92vh);
+    background:var(--surface); border-radius:20px 20px 0 0; margin:0 0 0 16px;
+    display:flex; flex-direction:column; overflow:hidden;
+    box-shadow:0 -10px 40px rgba(15,23,42,.25);
+    animation:ai-slide-up .28s ease;
+  }
+  @media (min-width:640px){
+    #ai-overlay{ align-items:center; justify-content:center; }
+    #ai-modal{ border-radius:20px; margin:0; height:min(650px,88vh); }
+  }
+  @keyframes ai-slide-up{ from{ transform:translateY(24px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+
+  #ai-header{
+    display:flex; align-items:center; gap:10px; padding:16px 18px;
+    background:linear-gradient(135deg, var(--primary), var(--primary-light));
+    color:#fff; flex-shrink:0;
+  }
+  #ai-header .ai-title{ font-weight:800; font-size:15px; flex:1; }
+  #ai-header .ai-sub{ font-size:11px; opacity:.85; font-weight:500; }
+  #ai-close{ background:rgba(255,255,255,.18); border:none; color:#fff; width:28px; height:28px; border-radius:50%; font-size:16px; cursor:pointer; line-height:1; }
+  #ai-close:hover{ background:rgba(255,255,255,.32); }
+
+  #ai-key-row{
+    display:flex; gap:6px; padding:10px 14px; background:var(--bg-2); border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  #ai-key-row input{
+    flex:1; border:1px solid var(--border); border-radius:8px; padding:7px 10px; font-size:12px; font-family:inherit; direction:ltr; text-align:left;
+  }
+  #ai-key-row button{
+    border:none; background:var(--primary); color:#fff; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;
+  }
+  #ai-key-status{ font-size:11px; color:var(--muted); padding:0 14px 8px; flex-shrink:0; }
+  #ai-key-status.ok{ color:#0F6E63; font-weight:700; }
+
+  #ai-messages{ flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; background:var(--bg); }
+  .ai-msg{ max-width:88%; padding:10px 13px; border-radius:14px; font-size:13.5px; line-height:1.6; white-space:pre-wrap; }
+  .ai-msg.user{ align-self:flex-end; background:var(--primary); color:#fff; border-bottom-left-radius:4px; }
+  .ai-msg.bot{ align-self:flex-start; background:var(--surface); color:var(--ink); border:1px solid var(--border); border-bottom-right-radius:4px; }
+  .ai-msg.system{ align-self:center; background:transparent; color:var(--muted); font-size:12px; text-align:center; max-width:100%; }
+  .ai-msg.bot.loading{ color:var(--muted); font-style:italic; }
+
+  #ai-suggestions{ display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 10px; flex-shrink:0; }
+  .ai-chip{ border:1px solid var(--border); background:var(--surface); color:var(--ink-2); font-size:11.5px; padding:6px 11px; border-radius:999px; cursor:pointer; font-family:inherit; }
+  .ai-chip:hover{ border-color:var(--primary); color:var(--primary); }
+
+  #ai-input-row{ display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--border); background:var(--surface); flex-shrink:0; }
+  #ai-input{ flex:1; border:1px solid var(--border); border-radius:12px; padding:10px 13px; font-size:13.5px; font-family:inherit; resize:none; max-height:80px; }
+  #ai-send{ border:none; background:var(--primary); color:#fff; border-radius:12px; padding:0 16px; font-weight:800; cursor:pointer; font-size:13px; }
+  #ai-send:disabled{ opacity:.5; cursor:not-allowed; }
 
 </style>
 </head>
@@ -3353,6 +3428,138 @@ document.addEventListener('click', function(e){
   target.scrollIntoView({ behavior:'smooth', block:'start' });
 }, false);
 
+// ===================== AI Assistant (Claude API) =====================
+// Uses the visitor's own Anthropic API key (entered below, kept only in memory
+// for this page load — never saved to disk/localStorage). Calls the real
+// Anthropic Messages API directly from the browser.
+let AI_API_KEY = '';
+let AI_HISTORY = [];
+let AI_BUSY = false;
+
+// Build a compact text summary of the whole atlas (every region > country > city)
+// so the model can answer questions grounded in this exact data.
+function buildAtlasContext(){
+  let lines = [];
+  REGIONS.forEach(region=>{
+    lines.push(`## المنطقة: ${region.name}`);
+    region.countries.forEach(country=>{
+      lines.push(`### ${country.flag} ${country.name}`);
+      country.cities.forEach(city=>{
+        const landmarks = (city.landmarks||[]).slice(0,6).join('، ');
+        lines.push(`- ${city.name} (${city.en||''}) | مطار: ${city.airport||'-'} | ${city.desc||''} ليه الناس بتروح: ${city.why||''} أهم حاجة: ${city.mustdo||''} معالم: ${landmarks}`);
+      });
+    });
+  });
+  return lines.join('\n');
+}
+
+function openAiChat(){
+  document.getElementById('ai-overlay').classList.add('open');
+  if(AI_HISTORY.length === 0){
+    addAiMessage('system', 'أهلاً! أنا مساعد أطلس الباكدجات السياحية 🧭 اسألني عن أي دولة أو مدينة في الأطلس، أو اطلب مقارنة، أو خطة رحلة. لازم تحط مفتاح Claude API فوق الأول عشان أقدر أرد.');
+  }
+}
+function closeAiChat(){
+  document.getElementById('ai-overlay').classList.remove('open');
+}
+
+function saveAiKey(){
+  const val = document.getElementById('ai-key-input').value.trim();
+  const statusEl = document.getElementById('ai-key-status');
+  if(!val){
+    statusEl.textContent = 'محتاج تحط مفتاح API الأول.';
+    statusEl.classList.remove('ok');
+    return;
+  }
+  AI_API_KEY = val;
+  statusEl.textContent = '✓ المفتاح متسجل لحد ما تقفل الصفحة دي (مش بيتحفظ بعد كدة).';
+  statusEl.classList.add('ok');
+}
+
+function addAiMessage(role, text){
+  const box = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + role;
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+function askAiSuggestion(text){
+  document.getElementById('ai-input').value = text;
+  sendAiMessage();
+}
+
+async function sendAiMessage(){
+  if(AI_BUSY) return;
+  const input = document.getElementById('ai-input');
+  const text = input.value.trim();
+  if(!text) return;
+
+  if(!AI_API_KEY){
+    addAiMessage('system', '⚠️ حط مفتاح Claude API فوق واضغط "حفظ" الأول.');
+    return;
+  }
+
+  input.value = '';
+  addAiMessage('user', text);
+  AI_HISTORY.push({ role:'user', content: text });
+
+  const loadingEl = addAiMessage('bot loading', 'بيفكر...');
+  AI_BUSY = true;
+  document.getElementById('ai-send').disabled = true;
+
+  try{
+    const systemPrompt = `إنت مساعد ذكي جوه موقع "أطلس الباكدجات السياحية". عندك بيانات كاملة عن كل الدول والمدن المتاحة في الأطلس (المطارات، الوصف، ليه الناس بتزورها، أهم حاجة تتعملها، وأهم المعالم). لما حد يسأل عن مدينة أو دولة موجودة في الأطلس، اعتمد على البيانات دي بالأساس. لو السؤال محتاج معلومات مش موجودة في البيانات (زي الأسعار الحالية، الطقس، تأشيرات، أو دول مش موجودة في الأطلس)، جاوب من معرفتك العامة ووضح إن دي معلومة عامة مش من بيانات الأطلس. رد دايمًا بالعربية، بأسلوب ودود ومباشر ومختصر قدر الإمكان إلا لو المستخدم طلب تفاصيل أكتر.
+
+بيانات الأطلس:
+${buildAtlasContext()}`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': AI_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: AI_HISTORY
+      })
+    });
+
+    const data = await response.json();
+    loadingEl.remove();
+
+    if(!response.ok){
+      const msg = (data && data.error && data.error.message) ? data.error.message : 'حصل خطأ غير متوقع.';
+      addAiMessage('system', '⚠️ فشل الطلب: ' + msg);
+      AI_HISTORY.pop();
+      return;
+    }
+
+    const replyText = (data.content || [])
+      .map(block => block.type === 'text' ? block.text : '')
+      .filter(Boolean)
+      .join('\n');
+
+    addAiMessage('bot', replyText || '(مفيش رد)');
+    AI_HISTORY.push({ role:'assistant', content: replyText });
+
+  }catch(err){
+    loadingEl.remove();
+    addAiMessage('system', '⚠️ فشل الاتصال بالـ API. تأكد من المفتاح ومن اتصال الإنترنت. (' + err.message + ')');
+    AI_HISTORY.pop();
+  }finally{
+    AI_BUSY = false;
+    document.getElementById('ai-send').disabled = false;
+  }
+}
+
 </script>
 
 <!-- Hotels Modal -->
@@ -3370,6 +3577,43 @@ document.addEventListener('click', function(e){
     <div id="hotels-list"></div>
   </div>
 </div>
+
+  <!-- AI Assistant Widget -->
+  <button id="ai-fab" onclick="openAiChat()">
+    <span class="dot"></span> 🤖 مساعد الأطلس الذكي
+  </button>
+
+  <div id="ai-overlay" onclick="if(event.target===this) closeAiChat()">
+    <div id="ai-modal">
+      <div id="ai-header">
+        <div>
+          <div class="ai-title">🤖 مساعد الأطلس الذكي</div>
+          <div class="ai-sub">بيجاوب من بيانات الأطلس + معرفته العامة (Claude)</div>
+        </div>
+        <button id="ai-close" onclick="closeAiChat()">×</button>
+      </div>
+
+      <div id="ai-key-row">
+        <input id="ai-key-input" type="password" placeholder="الصق مفتاح Claude API هنا (sk-ant-...)" autocomplete="off" />
+        <button onclick="saveAiKey()">حفظ</button>
+      </div>
+      <div id="ai-key-status">المفتاح بيتخزن في المتصفح بس لحظة استخدام الصفحة، ومش بيتبعت لأي حد غير Anthropic مباشرة.</div>
+
+      <div id="ai-messages"></div>
+
+      <div id="ai-suggestions">
+        <button class="ai-chip" onclick="askAiSuggestion('اقترحلي جدول رحلة 5 أيام في بالي بالتفصيل')">🧳 خطة 5 أيام في بالي</button>
+        <button class="ai-chip" onclick="askAiSuggestion('قارن لي بين بانكوك وهانوي كوجهة سياحية')">⚖️ قارن بين وجهتين</button>
+        <button class="ai-chip" onclick="askAiSuggestion('إيه أرخص 3 وجهات في الأطلس ده؟')">💰 أرخص الوجهات</button>
+        <button class="ai-chip" onclick="askAiSuggestion('إيه أنسب وجهة لشهر العسل من اللي في الأطلس؟')">💍 وجهة شهر العسل</button>
+      </div>
+
+      <div id="ai-input-row">
+        <textarea id="ai-input" rows="1" placeholder="اسأل عن أي دولة أو مدينة في الأطلس..." onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAiMessage(); }"></textarea>
+        <button id="ai-send" onclick="sendAiMessage()">إرسال</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
