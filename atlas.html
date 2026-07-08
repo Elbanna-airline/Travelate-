@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -735,6 +733,83 @@ svg.leaflet-image-layer.leaflet-interactive path {
     width:fit-content; margin-top:2px;
   }
   .hotels-empty{ color:var(--muted); font-size:14px; text-align:center; padding:24px 0; line-height:1.6; }
+  .hotel-add-card{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background:transparent; border:2px dashed var(--border); border-radius:14px;
+    padding:14px 18px; cursor:pointer; color:var(--primary); font-weight:700; font-size:13.5px;
+    transition:background .2s ease, border-color .2s ease;
+  }
+  .hotel-add-card:hover{ background:rgba(15,110,99,.06); border-color:var(--primary); }
+  .hotel-add-form{
+    display:flex; flex-direction:column; gap:8px;
+    background:var(--bg-2); border:1px solid var(--border); border-radius:14px; padding:14px 18px;
+  }
+  .hotel-add-form input, .hotel-add-form textarea{
+    border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit; background:var(--surface); color:var(--ink);
+  }
+  .hotel-add-form textarea{ resize:vertical; min-height:44px; }
+  .hotel-add-form .haf-actions{ display:flex; gap:8px; margin-top:2px; }
+  .hotel-add-form .haf-save{ border:none; background:var(--primary); color:#fff; padding:7px 16px; border-radius:8px; font-weight:700; font-size:12.5px; cursor:pointer; }
+  .hotel-add-form .haf-cancel{ border:1px solid var(--border); background:transparent; color:var(--muted); padding:7px 16px; border-radius:8px; font-weight:600; font-size:12.5px; cursor:pointer; }
+  .hotel-item.hotel-item-custom{ border-color:var(--primary); }
+  .hotel-item .hotel-remove{ align-self:flex-end; background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; padding:0; }
+  .hotel-item .hotel-remove:hover{ color:#dc2626; }
+
+  /* ---------- ARABI (Arab Traveler) BUTTON + MODAL ---------- */
+  .ticket .arabi-btn{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:12px; font-weight:600;
+    border:1.5px solid #B45309;
+    color:#B45309;
+    background:var(--surface);
+    padding:6px 12px; border-radius:999px;
+    cursor:pointer; white-space:nowrap;
+    transition:background .3s cubic-bezier(0.4,0,0.2,1), color .3s cubic-bezier(0.4,0,0.2,1), transform .3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .ticket .arabi-btn:hover{ background:#B45309; color:#fff; transform:translateY(-1px); }
+
+  #arabi-overlay{
+    position:fixed; inset:0; background:rgba(15,23,42,0);
+    z-index:960; display:none; align-items:flex-end; justify-content:center;
+    backdrop-filter:blur(0px); -webkit-backdrop-filter:blur(0px);
+    transition:background .35s cubic-bezier(0.4,0,0.2,1), backdrop-filter .35s cubic-bezier(0.4,0,0.2,1);
+  }
+  #arabi-overlay.show{
+    display:flex;
+    background:rgba(15,23,42,.45);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  }
+  #arabi-modal{
+    background:var(--surface); color:var(--ink);
+    width:100%; max-width:720px; max-height:85vh; overflow-y:auto;
+    border-radius:24px 24px 0 0; padding:28px 28px 36px;
+    border:1px solid var(--border);
+    box-shadow:var(--shadow-lg);
+    opacity:0; transform:translateY(40px) scale(.98);
+    transition:opacity .38s cubic-bezier(0.16,1,0.3,1), transform .38s cubic-bezier(0.16,1,0.3,1);
+  }
+  #arabi-overlay.show #arabi-modal{
+    opacity:1; transform:translateY(0) scale(1);
+  }
+  @media (min-width:820px){
+    #arabi-overlay{ align-items:center; }
+    #arabi-modal{ border-radius:24px; max-height:82vh; }
+  }
+  #arabi-close{
+    position:sticky; float:left; top:0; background:none; border:none;
+    color:var(--muted); font-size:22px; cursor:pointer; line-height:1;
+  }
+  .arabi-sub{ color:var(--muted); font-size:13.5px; margin:0 0 20px; line-height:1.6; }
+  #arabi-body{ display:flex; flex-direction:column; gap:8px; }
+  .arabi-row{
+    display:flex; align-items:flex-start; gap:10px;
+    background:var(--bg-2); border:1px solid var(--border); border-radius:12px;
+    padding:11px 15px;
+  }
+  .arabi-row .ar-icon{ font-size:16px; flex-shrink:0; margin-top:1px; }
+  .arabi-row .ar-label{ font-weight:700; font-size:12.5px; color:var(--muted); min-width:120px; flex-shrink:0; }
+  .arabi-row .ar-value{ font-size:13.5px; color:var(--ink); line-height:1.6; }
+  .arabi-empty{ color:var(--muted); font-size:14px; text-align:center; padding:24px 0; line-height:1.6; }
   .hotels-city-header{
     display:flex; align-items:center; gap:10px;
     margin-bottom:18px; padding-bottom:14px;
@@ -1761,7 +1836,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   }
 </style>
       <div class="stat-chip">🌍 <b>8</b> مناطق</div>
-      <div class="stat-chip">🏳️ <b>37</b> دولة</div>
+      <div class="stat-chip">🏳️ <b>38</b> دولة</div>
       <div class="stat-chip">📍 <b>104</b> مدينة</div>
     </div>
   </header>
@@ -1941,6 +2016,7 @@ const REGIONS = [
         {name:'نيس', en:'Nice', airport:'NCE', lat:43.7102, lng:7.2620, desc:'عاصمة الريفييرا الفرنسية، الشاطئ الأزرق، وقرب موناكو وكان.', why:'الناس تذهب إليها للشواطئ والطقس الجميل وأجواء الريفييرا الفرنسية.', mustdo:'التنزه على ممشى الإنجليز.', landmarks:['ممشى الإنجليز','تل القلعة','المدينة القديمة','ساحة ماسينا','شاطئ نيس','ميناء نيس']},
         {name:'ستراسبورغ', en:'Strasbourg', airport:'SXB', lat:48.5734, lng:7.7521, desc:'عاصمة إقليم الألزاس، مزيج ساحر من العمارة الفرنسية والألمانية على ضفاف نهر إيل.', why:'الناس تذهب إليها للعمارة النصف خشبية الفريدة، وأسواق الكريسماس الشهيرة، والأجواء الأوروبية المتعددة الثقافات.', mustdo:'التجول في حي البتيت فرانس وزيارة الكاتدرائية.', landmarks:['كاتدرائية ستراسبورغ','حي البتيت فرانس (فرنسا الصغيرة)','الجسور المغطاة','قصر روهان','ساحة كليبير','حي المرسى الأوروبي']},
         {name:'كولمار', en:'Colmar', airport:'EAP', airportNote:'أو مطار بازل BSL إذا كانت الرحلة أرخص.', lat:48.0794, lng:7.3585, desc:'بلدة الألزاس الخيالية، منازل ملونة نصف خشبية وقنوات صغيرة تشبه لوحة فنية.', why:'الناس تذهب إليها لجمالها الأخّاذ الذي يشبه القرى الخيالية، وأجواء أسواق الكريسماس، وكرومها المحيط.', mustdo:'التجول في حي البتيت فينيز (البندقية الصغيرة).', landmarks:['حي البتيت فينيز','كنيسة القديس مارتن','متحف أونترلندن','ساحة دومينيكان','بيت الرؤوس','قناة كولمار']},
+        {name:'ديزني لاند باريس', en:'Disneyland Paris', airport:'CDG', lat:48.8722, lng:2.7758, desc:'أشهر منتزه ترفيهي في أوروبا، عالم ديزني السحري على بعد نصف ساعة من باريس.', why:'الناس تذهب إليها من أجل العائلات والأطفال وتجربة قلعة ديزني والمدينة السينمائية.', mustdo:'قضاء يومين على الأقل بين حديقتي Disneyland Park و Walt Disney Studios.', landmarks:['قلعة الأميرة النائمة','Walt Disney Studios Park','Disney Village']},
       ]},
       { flag:'🇬🇧', name:'المملكة المتحدة', cities:[
         {name:'لندن', en:'London', airport:'LHR', lat:51.5074, lng:-0.1278, desc:'العاصمة العالمية، بيغ بن، والمتاحف الملكية (إنجلترا).', why:'الناس تذهب إليها للتاريخ، والتسوق، والمتاحف، والتنوع الثقافي.', mustdo:'زيارة ساعة بيغ بن أو عين لندن.', landmarks:['بيغ بن','عين لندن','قصر باكنغهام','هايد بارك','جسر البرج','شارع أكسفورد']},
@@ -2049,6 +2125,15 @@ const REGIONS = [
         {name:'موستار', en:'Mostar', airport:'OMO', airportNote:'أنصح بمطار سراييفو SJJ.', lat:43.3438, lng:17.8078, desc:'مدينة الجسر القديم الشهير (ستاري موست) الذي يربط ضفتي نهر نيريتفا الفيروزي.', why:'الناس تذهب إليها لرؤية الجسر التاريخي، والغطس منه تقليديًا، والمدينة العثمانية الساحرة.', mustdo:'عبور جسر ستاري موست ومشاهدة القفز التقليدي منه.', landmarks:['جسر ستاري موست القديم','المدينة القديمة العثمانية','نهر نيريتفا الفيروزي','مسجد كوسكي محمد باشا','بيت بيسكوفيتش التركي القديم','سوق كوجونيلوك']},
         {name:'بيهاتش', en:'Bihać', airport:'BNX', airportNote:'مطار زغرب ZAG أسهل وأفضل للوصول.', lat:44.8172, lng:15.8700, desc:'مدينة شمال غرب البوسنة على نهر أونا الفيروزي، شلالات وأنهار جامحة مثالية للطبيعة والمغامرة.', why:'الناس تذهب إليها للطبيعة النهرية الخلابة، ورياضات المياه البيضاء، والهدوء البعيد عن الزحام.', mustdo:'ركوب الرافتنج (المياه البيضاء) في نهر أونا أو زيارة شلالاته.', landmarks:['شلالات نهر أونا (Štrbački buk)','الحديقة الوطنية أونا','المدينة القديمة على النهر','جزيرة كاستيل','كنيسة القديس أنطونيو','جسر أونا التاريخي']},
       ]},
+      { flag:'🇲🇪', name:'مونتينيغرو', cities:[
+        {name:'كوتور', en:'Kotor', airport:'TIV', airportNote:'يبعد حوالي 15 دقيقة عن كوتور. البديل: TGD (بودغوريتسا) لكنه أبعد بكثير (حوالي ساعة ونصف).', lat:42.4247, lng:18.7712, desc:'أشهر مدينة في مونتينيغرو ومدرجة في التراث العالمي لليونسكو، خليج جبلي ساحر ومدينة قديمة محصّنة بالكامل.', why:'الناس تذهب إليها لرؤية أجمل خليج في البلقان، والمدينة القديمة، والرحلات البحرية، والمطاعم والكافيهات المطلة على الماء.', mustdo:'الصعود إلى قلعة سان جيوفاني ومشاهدة الخليج بالكامل.', landmarks:['المدينة القديمة','قلعة سان جيوفاني','خليج كوتور','المارينا','أسوار كوتور','بيراست (رحلة قريبة)']},
+        {name:'بودفا', en:'Budva', airport:'TIV', lat:42.2911, lng:18.8400, desc:'أشهر مدينة شاطئية وسهر في مونتينيغرو، مدينة قديمة صغيرة محاطة بشواطئ رملية طويلة.', why:'الناس تذهب إليها للبحر والشواطئ الطويلة والحياة الليلية النابضة.', mustdo:'المشي داخل المدينة القديمة وقت الغروب.', landmarks:['المدينة القديمة (Budva Old Town)','شاطئ موغرين','شاطئ سلوفينسكا','القلعة (Citadel)','المارينا']},
+        {name:'تيفات', en:'Tivat', airport:'TIV', lat:42.4362, lng:18.6910, desc:'مدينة صغيرة تشتهر بمارينا بورتو مونتينيغرو الفاخرة لليخوت، ووجهة أنيقة للرفاهية والهدوء.', why:'الناس تذهب إليها لأجواء الرفاهية والمارينا واليخوت والمطاعم الراقية.', mustdo:'التنزه داخل بورتو مونتينيغرو (Porto Montenegro).', landmarks:['بورتو مونتينيغرو','ممشى الصنوبر (Pine Promenade)','المارينا','متحف التراث البحري']},
+        {name:'بيراست', en:'Perast', airport:'TIV', lat:42.4884, lng:18.6994, desc:'أجمل قرية على خليج كوتور، عمارة باروكية ساحرة تطل مباشرة على الماء.', why:'الناس تذهب إليها للتاريخ والعمارة الباروكية والجزيرة الصغيرة وسط الخليج.', mustdo:'ركوب القارب إلى جزيرة سيدة الصخرة (Our Lady of the Rocks).', landmarks:['جزيرة سيدة الصخرة','كنيسة القديس نيقولا','الواجهة البحرية']},
+        {name:'بودغوريتسا', en:'Podgorica', airport:'TGD', lat:42.4304, lng:19.2594, desc:'عاصمة مونتينيغرو، مدينة حديثة أقل سياحية لكنها عملية لأول أو آخر ليلة في الرحلة.', why:'الناس يمرّون بها كبوابة جوية للبلاد، أو للتسوق والمطاعم الحديثة.', mustdo:'التجول في وسط المدينة والتسوق.', landmarks:['وسط المدينة','كاتدرائية القيامة','جسر الألفية','نهر مورايتشا']},
+        {name:'هرسك نوفي', en:'Herceg Novi', airport:'TIV', lat:42.4531, lng:18.5375, desc:'مدينة ساحلية عند مدخل خليج كوتور، مدرّجات خضراء ومدينة قديمة هادئة بعيدة عن الزحام.', why:'الناس تذهب إليها للطبيعة الخضراء والهدوء مقارنة ببودفا وكوتور.', mustdo:'زيارة المدينة القديمة وقلعة فورتي ماري.', landmarks:['المدينة القديمة','قلعة فورتي ماري (Forte Mare)','قلعة كانلي كولا','دير سافينا']},
+        {name:'جابلياك', en:'Žabljak (Durmitor)', airport:'TGD', airportNote:'أقرب مطار وأبعد نسبيًا (حوالي 170 كم)، يُفضَّل السيارة.', lat:43.1548, lng:19.1223, desc:'أعلى بلدة في البلقان، وبوابة حديقة دورميتور الوطنية وأفضل مكان للطبيعة الجبلية في مونتينيغرو.', why:'الناس تذهب إليها للطبيعة الجبلية والمغامرات كالتجديف والتنزه وجسر تارا.', mustdo:'زيارة البحيرة السوداء (Black Lake) داخل حديقة دورميتور.', landmarks:['حديقة دورميتور الوطنية','البحيرة السوداء','جسر تارا','قمم دورميتور الجبلية']},
+      ]},
     ]
   },
   {
@@ -2071,6 +2156,42 @@ const REGIONS = [
       { flag:'🇸🇨', name:'سيشيل', cities:[
         {name:'فيكتوريا (ماهي)', en:'Victoria, Mahé', airport:'SEZ', lat:-4.6191, lng:55.4513, desc:'أصغر عاصمة في أفريقيا وأكبر جزر سيشيل، غابات استوائية كثيفة تنحدر مباشرة إلى شواطئ بيضاء.', why:'الناس تذهب إليها للطبيعة البكر، والشواطئ الأسطورية، وشهر العسل الفاخر.', mustdo:'زيارة شاطئ بو فالون (Beau Vallon) وسوق فيكتوريا.', landmarks:['برج الساعة الصغير (ليتل بن)','سوق فيكتوريا','شاطئ بو فالون','الحديقة النباتية الوطنية','كاتدرائية الحبل بلا دنس','حديقة موريس رالف الاستوائية']},
         {name:'براسلين', en:'Praslin', airport:'PRI', airportNote:'أنصح بالوصول عبر ماهي SEZ ثم لانش/فيري.', lat:-4.3215, lng:55.7370, desc:'ثاني أكبر جزر سيشيل، موطن وادي دو ماي الأثري وشواطئ تُعد من أجمل شواطئ العالم.', why:'الناس تذهب إليها لشواطئها الأسطورية وغابة النخيل النادرة (جوز الهند البحري).', mustdo:'زيارة شاطئ آنس لازيو (Anse Lazio) ووادي دو ماي.', landmarks:['شاطئ آنس لازيو','وادي دو ماي (اليونسكو)','شاطئ آنس جورجيت','جزيرة كوزين المحمية القريبة','قرية غراند آنس','مرسى براسلين']},
+      ]},
+    ]
+  },
+  {
+    id:'gulf',
+    name:'الشرق الأوسط والخليج',
+    icon:'🕌',
+    accent:'#B08D57',
+    center:[24,48], zoom:4,
+    intro:'من أهرامات مصر وشواطئ البحر الأحمر، إلى مدن الخليج الحديثة ومنتجعاتها الفاخرة، وحتى مرتفعات السعودية الخضراء.',
+    countries:[
+      { flag:'🇪🇬', name:'مصر', cities:[
+        {name:'القاهرة', en:'Cairo', airport:'CAI', lat:30.0444, lng:31.2357, desc:'عاصمة مصر الصاخبة، تجمع بين الأهرامات والتاريخ الفرعوني والإسلامي وحياة المدينة الحديثة.', why:'الناس تذهب إليها للأهرامات والتاريخ العريق والتسوق، وتتنوع أحياؤها بين وسط البلد والزمالك والتجمع الخامس؛ ولا يُنصح باستئجار سيارة داخلها لأن Uber أسهل وأريح في الزحام.', mustdo:'زيارة أهرامات الجيزة وأبو الهول، ثم التجول في شارع المعز التاريخي.', landmarks:['أهرامات الجيزة','شارع المعز','شارع طلعت حرب','شارع التسعين','Cairo Festival City','City Stars','Mall of Egypt']},
+        {name:'شرم الشيخ', en:'Sharm El Sheikh', airport:'SSH', lat:27.9158, lng:34.3299, desc:'أشهر منتجعات البحر الأحمر المصري، مياه فيروزية وشعاب مرجانية عالمية المستوى.', why:'الناس تذهب إليها للغطس والغوص والاسترخاء في المنتجعات المغلقة، ولا تحتاج سيارة لأن أغلب الفنادق قريبة من بعضها.', mustdo:'رحلة غطس في الشعاب المرجانية أو زيارة جزيرة تيران.', landmarks:['خليج نعمة','سوهو سكوير','شاركس باي','ريف أم السيد','ناما باي']},
+        {name:'الغردقة', en:'Hurghada', airport:'HRG', lat:27.2579, lng:33.8116, desc:'أقدم مدن البحر الأحمر السياحية، ممشى طويل على الكورنيش ومنتجعات ممتدة على الشاطئ.', why:'الناس تذهب إليها للشمس والغطس ورحلات السفاري الصحراوية، والسيارة غير ضرورية داخل المنتجعات.', mustdo:'التجول في الممشى السياحي وتجربة رحلة بحرية بقارب زجاجي.', landmarks:['الممشى السياحي','سهل حشيش','الجونة','مارينا الغردقة']},
+        {name:'الساحل الشمالي', en:'North Coast', airport:'HBE', airportNote:'أو مطار العلمين الدولي DBB حسب توفر الرحلات.', lat:30.8481, lng:28.9527, desc:'الوجهة الصيفية الأشهر للمصريين على البحر المتوسط، قرى ساحلية راقية ومياه فيروزية هادئة.', why:'الناس تذهب إليها في الصيف للشواطئ الهادئة والقرى المغلقة الفاخرة، والسيارة ضرورية للتنقل بين القرى المتباعدة.', mustdo:'التجول في مدينة العلمين الجديدة وقضاء يوم على شاطئ سيدي عبد الرحمن.', landmarks:['العلمين الجديدة','سيدي عبد الرحمن','هاسيندا','مراسي']},
+      ]},
+      { flag:'🇧🇭', name:'البحرين', cities:[
+        {name:'المنامة', en:'Manama', airport:'BAH', lat:26.2285, lng:50.5860, desc:'عاصمة البحرين الحديثة، مزيج من الأبراج الشاهقة والأسواق التراثية على الخليج.', why:'الناس تذهب إليها لقربها وسهولة السفر إليها، وتنوع المطاعم والتسوق والحياة العائلية الهادئة.', mustdo:'زيارة باب البحرين والتجول في السوق القديم.', landmarks:['باب البحرين','الجفير','السيف','City Centre Bahrain','The Avenues']},
+      ]},
+      { flag:'🇴🇲', name:'عُمان', cities:[
+        {name:'صلالة', en:'Salalah', airport:'SLL', lat:17.0151, lng:54.0924, desc:'الوجهة الخضراء الاستثنائية في الخليج، جبال وشلالات تكسوها الخضرة موسم الخريف.', why:'الناس تذهب إليها موسم الخريف للطقس المعتدل والضباب والشلالات، والسيارة ضرورية جدًا للتنقل بين الجبال والشواطئ.', mustdo:'زيارة عين رزات وشلالات وادي درباط في موسم الخريف.', landmarks:['الدهاريز','الحافة','Salalah Gardens Mall','شاطئ صلالة']},
+      ]},
+      { flag:'🇶🇦', name:'قطر', cities:[
+        {name:'الدوحة', en:'Doha', airport:'DOH', lat:25.2854, lng:51.5310, desc:'عاصمة قطر العصرية، ناطحات سحاب على الخليج وسوق واقف التراثي جنبًا إلى جنب.', why:'الناس تذهب إليها للتسوق الفاخر والفعاليات العالمية والكورنيش الجميل، ولا تحتاج سيارة لأن Uber متوفر بسهولة.', mustdo:'التجول في سوق واقف والكورنيش ليلًا.', landmarks:['سوق واقف','West Bay','The Pearl','Msheireb','Doha Festival City','Villaggio']},
+        {name:'جزيرة بنانا', en:'Banana Island', airport:'DOH', airportNote:'يُصل إليها بقارب خاص من مرسى الدوحة، لا حاجة لمطار منفصل.', lat:25.2940, lng:51.6161, desc:'جزيرة منتجع خاصة قبالة سواحل الدوحة، هدوء تام بعيدًا عن صخب المدينة.', why:'الناس تذهب إليها لقضاء إجازة استرخاء فاخرة على بعد دقائق بالقارب من الدوحة.', mustdo:'ركوب القارب من مرسى الدوحة والاسترخاء على الشاطئ الخاص.', landmarks:['Banana Island Resort by Anantara','الشاطئ الخاص','مرسى القوارب']},
+      ]},
+      { flag:'🇦🇪', name:'الإمارات', cities:[
+        {name:'دبي (داون تاون)', en:'Dubai Downtown', airport:'DXB', lat:25.1972, lng:55.2744, desc:'قلب دبي الحديث حول برج خليفة ودبي مول والنافورة الراقصة.', why:'الناس تذهب إليها للتسوق الفاخر والمعالم الشهيرة وإطلالات برج خليفة.', mustdo:'مشاهدة نافورة دبي وزيارة برج خليفة.', landmarks:['برج خليفة','دبي مول','نافورة دبي','سوق التوابل']},
+        {name:'دبي (جميرا بيتش)', en:'Dubai Jumeirah Beach', airport:'DXB', lat:25.0805, lng:55.1403, desc:'الواجهة البحرية الشهيرة لدبي، شاطئ جي بي آر ومرسى اليخوت وبرج العرب في الخلفية.', why:'الناس تذهب إليها للشاطئ والحياة الساحلية والمطاعم المطلة على البحر.', mustdo:'التنزه على ممشى JBR ومشاهدة برج العرب.', landmarks:['شاطئ JBR','برج العرب','مرسى دبي','The Walk']},
+        {name:'دبي (ليجولاند)', en:'Dubai Parks (LEGOLAND)', airport:'DXB', lat:24.9857, lng:55.0287, desc:'منطقة مدن دبي الترفيهية التي تضم ليجولاند ومنتزهات عائلية متعددة.', why:'الناس تذهب إليها من أجل العائلات والأطفال والمدن الترفيهية المتلاصقة.', mustdo:'قضاء يوم كامل في LEGOLAND Dubai.', landmarks:['LEGOLAND Dubai','Motiongate','Dubai Parks and Resorts']},
+        {name:'جزيرة ياس', en:'Yas Island', airport:'AUH', lat:24.4672, lng:54.6033, desc:'جزيرة أبوظبي الترفيهية، تضم فيراري وورلد ووارنر براذرز وحلبة مرسى ياس.', why:'الناس تذهب إليها للمنتزهات الترفيهية العالمية وسباقات الفورمولا 1.', mustdo:'زيارة فيراري وورلد أبوظبي.', landmarks:['Ferrari World','Warner Bros World','Yas Marina Circuit','Yas Mall']},
+      ]},
+      { flag:'🇸🇦', name:'السعودية', cities:[
+        {name:'أبها', en:'Abha', airport:'AHB', lat:18.2164, lng:42.5053, desc:'عروس الجبال في عسير، طقس بارد ومناظر خضراء تمتد فوق السحاب.', why:'الناس تذهب إليها هربًا من الحر للجو الجبلي البارد والمصايف الخضراء، والسيارة يُنصح بها بشدة بسبب تباعد المعالم.', mustdo:'ركوب التلفريك في طريق السودة والتجول في شارع الفن.', landmarks:['طريق السودة','شارع الفن','عسير مول','الراشد مول أبها']},
+        {name:'الرياض', en:'Riyadh', airport:'RUH', lat:24.7136, lng:46.6753, desc:'العاصمة السعودية الحديثة، ناطحات سحاب وحياة ليلية متجددة وسط اتساع صحراوي كبير.', why:'الناس تذهب إليها للأعمال والترفيه والفعاليات الكبرى وتنوع الأحياء الراقية، والسيارة ضرورية في أغلب التنقلات بسبب اتساع المدينة.', mustdo:'زيارة بوليفارد رياض سيتي أو الدرعية التاريخية.', landmarks:['العليا','بوليفارد وورلد','حي الصحافة','الرياض بارك','النخيل مول','المملكة']},
       ]},
     ]
   },
@@ -2184,6 +2305,7 @@ REGIONS.forEach(region=>{
             <span class="coords mono">${city.lat.toFixed(3)}° , ${city.lng.toFixed(3)}°</span>
             <a class="gmap-btn" style="background:${region.accent}" href="${gmapUrl(city.lat,city.lng)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📍 خرائط جوجل</a>
             <button class="hotels-btn" onclick="event.stopPropagation(); openHotelsModal('${city.name}', '${c.flag}', '${c.name}')">🏨 الفنادق</button>
+            <button class="arabi-btn" onclick="event.stopPropagation(); openArabiModal('${city.name}', '${c.flag}', '${c.name}')">🧭 مسافر عربي؟</button>
             <button class="add-trip-btn" onclick="event.stopPropagation(); toggleTripCity(this)">➕ أضف للمخطط</button>
           </div>
         </div>
@@ -2719,6 +2841,41 @@ function calculateTrip(){
 }
 
 const HOTELS_DATA = {
+  'كوتور': [
+    {name: 'Hotel Marija', desc: 'سعره اقتصادي، وقيمته جيدة جدًا كخيار موفّر داخل كوتور.', tag: 'خيار معروف'},
+    {name: 'Hotel Monte Cristo', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر والموقع.', tag: 'أفضل قيمة'},
+    {name: 'HUMA Kotor Bay Hotel and Villas', desc: 'سعره مرتفع نسبيًا، وقيمته قوية جدًا كفندق سلسلة مطل على الخليج.', tag: 'سلسلة عالمية'},
+    {name: 'Hyatt Regency Kotor Bay Resort', desc: 'سعره مرتفع، لكن قيمته ممتازة جدًا كمنتجع فاخر على الخليج.', tag: 'بديل قوي'},
+  ],
+  'بودفا': [
+    {name: 'Hotel Ponta Nova', desc: 'سعره اقتصادي إلى متوسط، وقيمته جيدة جدًا لموقعه القريب من المدينة القديمة.'},
+    {name: 'Hotel Moskva', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر.', tag: 'أفضل قيمة'},
+    {name: 'Iberostar Waves Slavija', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا كسلسلة عالمية على الشاطئ.', tag: 'سلسلة عالمية'},
+    {name: 'Splendid Conference & Spa Resort', desc: 'سعره مرتفع، لكن قيمته ممتازة جدًا كمنتجع فاخر بسبا وشاطئ خاص.', tag: 'بديل قوي'},
+  ],
+  'تيفات': [
+    {name: 'Hotel Palma', desc: 'سعره اقتصادي إلى متوسط، وقيمته جيدة جدًا كخيار موفّر.'},
+    {name: 'Hotel Astoria Tivat', desc: 'سعره متوسط، وقيمته ممتازة جدًا لموقعه المركزي.', tag: 'أفضل قيمة'},
+    {name: 'La Roche Hotel', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا لأجوائه الأنيقة.'},
+    {name: 'Regent Porto Montenegro', desc: 'سعره مرتفع جدًا، لكن قيمته ممتازة جدًا كفندق فاخر داخل مارينا بورتو مونتينيغرو.', tag: 'فاخر'},
+  ],
+  'بيراست': [
+    {name: 'Heritage Grand Perast', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة جدًا لموقعه التاريخي المطل على الخليج مباشرة.'},
+    {name: 'Conte Hotel & Restaurant', desc: 'سعره متوسط، وقيمته قوية جدًا لأجوائه الهادئة ومطعمه المميز.'},
+  ],
+  'بودغوريتسا': [
+    {name: 'Hilton Podgorica Crna Gora', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا كفندق سلسلة عالمية في مركز العاصمة.', tag: 'سلسلة عالمية'},
+    {name: 'Crowne Plaza Podgorica', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر والموقع.', tag: 'أفضل قيمة'},
+    {name: 'Hotel Hemera', desc: 'سعره اقتصادي إلى متوسط، وقيمته جيدة جدًا كخيار عملي لليلة واحدة.'},
+  ],
+  'هرسك نوفي': [
+    {name: 'Lazure Hotel & Marina', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة جدًا لموقعه على المارينا مباشرة.', tag: 'بديل قوي'},
+    {name: 'Palmon Bay Hotel & Spa', desc: 'سعره مرتفع نسبيًا، لكن قيمته قوية جدًا لسبا ومسبح وإطلالة بحرية.'},
+  ],
+  'جابلياك': [
+    {name: 'Hotel Soa', desc: 'سعره متوسط، وقيمته قوية جدًا لموقعه القريب من حديقة دورميتور.'},
+    {name: 'Hotel Zlatni Bor', desc: 'سعره متوسط، وقيمته ممتازة جدًا لأجوائه الجبلية الدافئة.', tag: 'أفضل قيمة'},
+  ],
   'آنسي': [
     {name: 'Splendid Hotel Annecy', desc: 'سعره متوسط، وقيمته ممتازة جدًا قرب البحيرة والمدينة القديمة.'},
     {name: 'Allobroges Park Hotel', desc: 'سعره جيد، وقيمته قوية جدًا للموقع.'},
@@ -2729,19 +2886,22 @@ const HOTELS_DATA = {
     {name: 'Electra Metropolis Athens', desc: 'سعره مرتفع نسبيًا، لكن قيمته ممتازة جدًا قرب سينتاجما.'},
     {name: 'Herodion Hotel', desc: 'سعره متوسط، وقيمته قوية جدًا قرب الأكروبوليس.'},
     {name: 'Athens Cypria Hotel', desc: 'سعره جيد، وقيمته ممتازة جدًا.'},
-    {name: 'Novotel Athens', desc: 'سعره متوسط، وقيمته جيدة جدًا كسلسلة معروفة.'},
+    {name: 'Athens Gate Hotel', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة جدًا لموقعه الأسطوري مقابل معبد زيوس وعلى بعد خطوات من الأكروبوليس ومتحفه، بتقييمات عائلات ممتازة.'},
   ],
   'أمستردام': [
     {name: 'Park Plaza Victoria Amsterdam', desc: 'سعره مرتفع نسبيًا، لكن قيمته ممتازة جدًا مقابل المحطة.'},
     {name: 'Eden Hotel Amsterdam', desc: 'سعره متوسط، وقيمته قوية جدًا قرب القنوات وساحة دام.'},
-    {name: 'The Social Hub Amsterdam City', desc: 'سعره جيد، وقيمته ممتازة جدًا.'},
+    {name: 'Mövenpick Hotel Amsterdam City Centre', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا في قلب المدينة كسلسلة عالمية موثوقة.'},
     {name: 'ibis Amsterdam Centre', desc: 'سعره متوسط، وقيمته قوية جدًا للموقع.'},
   ],
   'أنطاليا': [
     {name: 'Best Western Plus Khan Hotel', desc: 'سعره متوسط، وقيمته قوية جدًا في مركز المدينة.'},
     {name: 'Puding Hotel', desc: 'سعره جيد، وقيمته ممتازة جدًا داخل كاليتشي.'},
-    {name: 'Privado Hotels', desc: 'سعره اقتصادي إلى متوسط، وقيمته جيدة جدًا مقابل الموقع.'},
+    {name: 'DoubleTree by Hilton Antalya City Centre', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة جدًا لموقعه القريب من المركز التاريخي والمولات، بتقييمات عالية من العائلات (4/5).'},
     {name: 'Ramada Plaza Antalya', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا كسلسلة معروفة.'},
+    {name: 'The Land of Legends Kingdom Hotel', desc: 'سعره مرتفع جدًا، لكن قيمته ممتازة جدًا لأنه الفندق الوحيد بدخول مباشر داخل أرض الأساطير.'},
+    {name: 'Rixos Premium Belek', desc: 'سعره مرتفع جدًا، وقيمته قوية جدًا لموقعه في بيليك وقربه من أرض الأساطير.'},
+    {name: 'Rixos Park Belek', desc: 'سعره مرتفع، وقيمته جيدة جدًا كخيار عائلي قريب من أرض الأساطير.'},
   ],
   'أوزنجول': [
     {name: 'Inan Kardesler Hotel', desc: 'سعره جيد، وقيمته قوية جدًا لقربه من البحيرة.'},
@@ -2803,7 +2963,7 @@ const HOTELS_DATA = {
   'باتومي': [
     {name: 'Hotel Old Town Batumi', desc: 'سعره متوسط، وقيمته قوية جدًا لقربه من الكورنيش.'},
     {name: 'Le Port Apart Hotel', desc: 'سعره جيد، وقيمته ممتازة جدًا قرب الميناء.'},
-    {name: 'Sky Tower Hotel', desc: 'سعره متوسط، وقيمته جيدة جدًا مقابل الموقع.'},
+    {name: 'Courtyard by Marriott Batumi', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا كسلسلة عالمية، بتقييمات جيدة للعائلات وموقع مواجه للكورنيش.'},
     {name: 'Best Western Premier Batumi', desc: 'سعره متوسط، وقيمته قوية جدًا كسلسلة معروفة.'},
   ],
   'باريس': [
@@ -2828,7 +2988,7 @@ const HOTELS_DATA = {
     {name: 'Alaya Resort Ubud', desc: 'سعره متوسط إلى مرتفع قليلًا، لكن قيمته ممتازة جدًا داخل أوبود.'},
     {name: 'Komaneka at Monkey Forest', desc: 'سعره مرتفع نسبيًا، وقيمته قوية جدًا لقربه من غابة القرود.'},
     {name: 'Champlung Sari Hotel Ubud', desc: 'سعره جيد، وقيمته ممتازة إذا كان الهدف التوفير مع موقع معروف.'},
-    {name: 'Four Points by Sheraton Bali Ungasan', desc: 'سعره متوسط، وقيمته جيدة جدًا كسلسلة معروفة.'},
+    {name: 'The Ubud Village Resort & Spa', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة جدًا لموقعه داخل أوبود وقربه من غابة القرود، بتقييمات عائلات وأزواج ممتازة.'},
   ],
   'باندونغ': [
     {name: 'Hilton Bandung', desc: 'سعره أعلى قليلًا، لكن قيمته قوية جدًا لفندق سلسلة في موقع مركزي.'},
@@ -2873,7 +3033,7 @@ const HOTELS_DATA = {
   'بوخارست': [
     {name: 'Novotel Bucharest City Centre', desc: 'سعره متوسط، وقيمته ممتازة جدًا للموقع.'},
     {name: 'Hotel Cismigiu', desc: 'سعره متوسط، وقيمته ممتازة جدًا للموقع.'},
-    {name: 'ibis Bucharest Politehnica', desc: 'سعره اقتصادي إلى متوسط، وقيمته قوية جدًا.'},
+    {name: 'Mercure Bucharest City Center', desc: 'سعره متوسط، وقيمته قوية جدًا لموقعه المركزي الأقوى وتقييمات طعام وخدمة أعلى.'},
     {name: 'Radisson Blu Hotel Bucharest', desc: 'سعره مرتفع نسبيًا، لكن قيمته ممتازة جدًا.'},
   ],
   'بودابست': [
@@ -2895,7 +3055,7 @@ const HOTELS_DATA = {
   'بوكيت': [
     {name: 'Novotel Phuket City Phokeethra', desc: 'سعره متوسط، وقيمته جيدة داخل بوكيت تاون.'},
     {name: 'Holiday Inn Resort Phuket', desc: 'سعره أعلى نسبيًا، لكن قيمته قوية جدًا لقربه من باتونغ.'},
-    {name: 'Lub d Phuket Patong', desc: 'سعره اقتصادي ومناسب جدًا للمسافرين الشباب.'},
+    {name: 'Holiday Inn Express Phuket Patong Beach Central', desc: 'سعره متوسط، وقيمته ممتازة جدًا بتقييم 8.7/10، موقع وسط باتونغ ومناسب للعائلات بأسعار معقولة.'},
     {name: 'Four Points by Sheraton Phuket Patong Beach Resort', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة إذا أردت سلسلة قوية وموقعًا جيدًا.'},
   ],
   'بينانج': [
@@ -2908,7 +3068,7 @@ const HOTELS_DATA = {
     {name: 'Hotel Citrus Tbilisi', desc: 'سعره متوسط، وقيمته جيدة جدًا لقربه من روستافيلي.'},
     {name: 'Shota Rustaveli Boutique Hotel', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا داخل المدينة.'},
     {name: 'ibis Budget Tbilisi Center', desc: 'سعره اقتصادي، وقيمته ممتازة جدًا للمسافر الذكي.'},
-    {name: 'Holiday Inn Tbilisi', desc: 'سعره متوسط، وقيمته قوية جدًا كسلسلة معروفة.'},
+    {name: 'Holiday Inn Express Tbilisi Avlabari', desc: 'سعره متوسط، وقيمته ممتازة جدًا لقربه من البلدة القديمة وقيمته العالية مقابل السعر.'},
   ],
   'جاكرتا': [
     {name: 'Pullman Jakarta Indonesia', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة لموقعه في قلب المدينة.'},
@@ -3042,7 +3202,7 @@ const HOTELS_DATA = {
   'قارمش': [
     {name: 'Atlas Grand Hotel', desc: 'سعره متوسط، وقيمته قوية جدًا في وسط المنطقة التاريخية.'},
     {name: 'Hotel Zugspitze', desc: 'سعره مرتفع قليلًا، لكن قيمته ممتازة جدًا لموقعه.'},
-    {name: 'Hyperion Hotel Garmisch', desc: 'سعره متوسط، وقيمته جيدة جدًا مقابل الجودة.'},
+    {name: 'Riessersee Hotel Garmisch', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة جدًا لموقعه المميز قرب البحيرة، ومناسب جدًا للعائلات.'},
     {name: 'فنادق محلية قوية', desc: 'سعرها يتفاوت، وقيمتها تعتمد على الإطلالة والطبيعة أكثر من السلسلة.'},
   ],
   'كابرون': [
@@ -3094,7 +3254,7 @@ const HOTELS_DATA = {
     {name: 'Hotel Mundial', desc: 'سعره متوسط، وقيمته ممتازة جدًا قرب Rossio.'},
     {name: 'LX Boutique Hotel', desc: 'سعره مرتفع قليلًا، وقيمته قوية جدًا قرب النهر.'},
     {name: 'Masa Hotel 5 de Outubro', desc: 'سعره جيد، وقيمته ممتازة جدًا مقابل السعر.'},
-    {name: 'Holiday Inn Lisbon', desc: 'سعره متوسط، وقيمته قوية جدًا كسلسلة معروفة.'},
+    {name: 'HF Fénix Lisboa', desc: 'سعره متوسط، وقيمته قوية جدًا لموقعه في منطقة Saldanha، بتقييمات ممتازة من العائلات والعرب.'},
   ],
   'لندن': [
     {name: 'Park Plaza Westminster Bridge London', desc: 'سعره مرتفع نسبيًا، لكن قيمته ممتازة جدًا للموقع.'},
@@ -3148,7 +3308,7 @@ const HOTELS_DATA = {
     {name: 'Palazzo Caracciolo Napoli', desc: 'سعره متوسط، وقيمته ممتازة جدًا داخل المدينة.'},
     {name: 'UNA Hotels Napoli', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا.'},
     {name: 'Hotel Piazza Bellini', desc: 'سعره جيد، وقيمته ممتازة جدًا للموقع.'},
-    {name: 'Holiday Inn Naples', desc: 'سعره متوسط، وقيمته جيدة جدًا كسلسلة معروفة.'},
+    {name: 'Palazzo Salgar', desc: 'سعره متوسط، وقيمته ممتازة جدًا لموقعه المركزي الأنيق وقربه من المعالم.'},
   ],
   'نيس': [
     {name: 'Hotel West End Nice', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة جدًا على البحر.'},
@@ -3347,51 +3507,273 @@ const HOTELS_DATA = {
     {name:'Acajou Beach Resort', desc:'قريب من الشاطئ الشهير.', tag:'قريب من معلم'},
     {name:'Palm Beach Hotel', desc:'قيمة جيدة.', tag:'أفضل قيمة'},
   ],
+  'القاهرة': [
+    {name: 'Sofitel Cairo Nile El Gezirah', desc: 'سعره مرتفع، وقيمته ممتازة جدًا لإطلالته المباشرة على النيل من الزمالك.'},
+    {name: 'Four Seasons Hotel Cairo at Nile Plaza', desc: 'سعره مرتفع جدًا، وقيمته قوية جدًا إذا كان الهدف الفخامة الكاملة على النيل.'},
+    {name: 'Kempinski Nile Hotel Cairo', desc: 'سعره مرتفع، وقيمته ممتازة جدًا لموقعه في قرن جاريه القريب من وسط البلد.'},
+    {name: 'Steigenberger Hotel El Tahrir', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا لموقعه المركزي جدًا في وسط البلد.'},
+    {name: 'Hilton Cairo Grand Nile', desc: 'سعره متوسط إلى مرتفع، وقيمته جيدة جدًا كسلسلة عالمية معروفة على النيل.'},
+    {name: 'Sheraton Cairo Hotel & Casino', desc: 'سعره متوسط، وقيمته جيدة جدًا لموقعه العملي وقربه من مطار القاهرة.'},
+    {name: 'Novotel Cairo El Borg', desc: 'سعره جيد، وقيمته ممتازة جدًا مقابل السعر لمن يريد إقامة عملية قرب برج القاهرة.'},
+  ],
+  'شرم الشيخ': [
+    {name: 'Rixos Premium Seagate', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا لأنه من أفخم منتجعات شرم الشيخ الشاملة.'},
+    {name: 'SUNRISE Arabian Beach Resort', desc: 'سعره مرتفع نسبيًا، وقيمته قوية جدًا للعائلات بنظام الشامل كليًا.'},
+    {name: 'Baron Resort Sharm El Sheikh', desc: 'سعره متوسط إلى مرتفع، وقيمته جيدة جدًا في خليج نعمة.'},
+    {name: 'JAZ Mirabel Beach', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر كخيار عائلي.'},
+    {name: 'Stella Di Mare Beach Hotel & Spa', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا للسبا والاسترخاء.'},
+    {name: 'Pickalbatros Aqua Blu Sharm El Sheikh', desc: 'سعره متوسط، وقيمته ممتازة جدًا لمحبي الألعاب المائية.'},
+    {name: 'JAZ Sharks Bay', desc: 'سعره جيد، وقيمته ممتازة جدًا مقابل السعر في شاركس باي.'},
+  ],
+  'الغردقة': [
+    {name: 'Steigenberger ALDAU Beach Hotel', desc: 'سعره مرتفع، وقيمته ممتازة جدًا لموقعه وخدماته المتكاملة.'},
+    {name: 'Pickalbatros White Beach Resort', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا للعائلات.'},
+    {name: 'JAZ Aquamarine', desc: 'سعره متوسط، وقيمته ممتازة جدًا كخيار شامل متكامل.'},
+    {name: 'Sunrise Crystal Bay Resort', desc: 'سعره متوسط، وقيمته جيدة جدًا مقابل السعر.'},
+    {name: 'Steigenberger Aqua Magic', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا لمحبي الألعاب المائية.'},
+    {name: 'Pickalbatros Aqua Blu Resort', desc: 'سعره متوسط، وقيمته ممتازة جدًا كخيار عائلي شامل.'},
+    {name: 'Hilton Hurghada Plaza', desc: 'سعره متوسط إلى مرتفع، وقيمته جيدة جدًا كسلسلة عالمية معروفة.'},
+  ],
+  'الساحل الشمالي': [
+    {name: 'Address Marassi Golf Resort', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا لموقعه الفاخر في مراسي.'},
+    {name: 'Vida Marassi Marina', desc: 'سعره مرتفع، وقيمته قوية جدًا على مارينا مراسي مباشرة.'},
+    {name: 'Al Alamein Hotel', desc: 'سعره متوسط إلى مرتفع، وقيمته جيدة جدًا في قلب العلمين الجديدة.'},
+    {name: 'Rixos Premium Alamein', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا كمنتجع شامل فاخر.'},
+    {name: 'The G Hotel Seashell', desc: 'سعره متوسط، وقيمته جيدة جدًا مقابل السعر.'},
+    {name: 'Golden Jewel Hotel', desc: 'سعره متوسط، وقيمته جيدة جدًا كخيار عملي على الساحل.'},
+    {name: 'Tolip Resort Sunrays New Alamein', desc: 'سعره جيد، وقيمته ممتازة جدًا لمن يريد إقامة اقتصادية بالنسبة للمنطقة.'},
+  ],
+  'المنامة': [
+    {name: 'Four Seasons Bahrain Bay', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا لأنه من أفخم فنادق البحرين على الخليج مباشرة.'},
+    {name: 'The Ritz-Carlton Bahrain', desc: 'سعره مرتفع جدًا، وقيمته قوية جدًا للفخامة والشاطئ الخاص.'},
+    {name: 'Le Méridien City Centre Bahrain', desc: 'سعره مرتفع، وقيمته ممتازة جدًا لموقعه المتصل بمول سيتي سنتر.'},
+    {name: 'InterContinental Bahrain', desc: 'سعره مرتفع، وقيمته جيدة جدًا كسلسلة عالمية معروفة قرب باب البحرين.'},
+    {name: 'The Diplomat Radisson Blu', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا لموقعه في السيف.'},
+    {name: 'Wyndham Grand Manama', desc: 'سعره متوسط إلى مرتفع، وقيمته جيدة جدًا كخيار حديث.'},
+    {name: 'ibis Seef Manama', desc: 'سعره جيد، وقيمته ممتازة جدًا مقابل السعر في منطقة السيف.'},
+  ],
+  'صلالة': [
+    {name: 'Al Baleed Resort Salalah by Anantara', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا لأنه من أفخم منتجعات صلالة على الشاطئ.'},
+    {name: 'Fanar Hotel & Residences', desc: 'سعره مرتفع، وقيمته قوية جدًا للعائلات الباحثة عن مساحة أكبر.'},
+    {name: 'Hilton Salalah Resort', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة جدًا كسلسلة عالمية معروفة على الشاطئ.'},
+    {name: 'Millennium Resort Salalah', desc: 'سعره متوسط، وقيمته جيدة جدًا مقابل السعر.'},
+    {name: 'Crowne Plaza Resort Salalah', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا كخيار عائلي معروف.'},
+    {name: 'Juweira Boutique Hotel', desc: 'سعره متوسط، وقيمته ممتازة جدًا كخيار بوتيكي هادئ.'},
+    {name: 'Salalah Rotana Resort', desc: 'سعره متوسط، وقيمته جيدة جدًا كخيار شامل مناسب.'},
+  ],
+  'الدوحة': [
+    {name: 'Mandarin Oriental Doha', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا لأنه من أفخم فنادق الدوحة.'},
+    {name: 'Fairmont Doha', desc: 'سعره مرتفع جدًا، وقيمته قوية جدًا للتصميم المميز والموقع الفاخر.'},
+    {name: 'Marriott Marquis City Center Doha', desc: 'سعره مرتفع، وقيمته ممتازة جدًا لموقعه في قلب السيتي سنتر.'},
+    {name: 'JW Marriott Marquis City Center Doha', desc: 'سعره مرتفع، وقيمته قوية جدًا كخيار فاخر آخر في السيتي سنتر.'},
+    {name: 'Le Méridien City Center Doha', desc: 'سعره متوسط إلى مرتفع، وقيمته جيدة جدًا لموقعه العملي.'},
+    {name: 'InterContinental Doha The City', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا كسلسلة عالمية معروفة.'},
+    {name: 'Wyndham Doha West Bay', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر في ويست باي.'},
+  ],
+  'جزيرة بنانا': [
+    {name: 'Banana Island Resort Doha by Anantara', desc: 'سعره مرتفع جدًا، لكن قيمته ممتازة جدًا لأنه المنتجع الوحيد على الجزيرة الخاصة، مثالي لشهر العسل.'},
+  ],
+  'دبي (داون تاون)': [
+    {name: 'Armani Hotel Dubai', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا لأنه داخل برج خليفة مباشرة.'},
+    {name: 'Address Downtown', desc: 'سعره مرتفع جدًا، وقيمته قوية جدًا لإطلالته المباشرة على نافورة دبي.'},
+    {name: 'Palace Downtown', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا للفخامة والإطلالة على برج خليفة.'},
+    {name: 'Kempinski Central Avenue Dubai', desc: 'سعره مرتفع، وقيمته قوية جدًا لموقعه المتصل بدبي مول.'},
+    {name: 'Sofitel Dubai Downtown', desc: 'سعره مرتفع، وقيمته جيدة جدًا كخيار فاخر بإطلالة مميزة.'},
+    {name: 'Ramada by Wyndham Downtown Dubai', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر في قلب الداون تاون.'},
+    {name: 'Rove Downtown Dubai', desc: 'سعره جيد، وقيمته ممتازة جدًا لمن يريد إقامة عصرية اقتصادية قريبة من كل شيء.'},
+  ],
+  'دبي (جميرا بيتش)': [
+    {name: 'Address Beach Resort', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا لموقعه المباشر على شاطئ JBR.'},
+    {name: 'Sofitel Dubai Jumeirah Beach', desc: 'سعره مرتفع، وقيمته قوية جدًا على الشاطئ مباشرة.'},
+    {name: 'Hilton Dubai Jumeirah', desc: 'سعره مرتفع، وقيمته ممتازة جدًا كسلسلة عالمية معروفة على الشاطئ.'},
+    {name: 'JA Ocean View Hotel', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا لإطلالته المباشرة على البحر.'},
+    {name: 'Amwaj Rotana JBR', desc: 'سعره متوسط إلى مرتفع، وقيمته جيدة جدًا في قلب ممشى JBR.'},
+    {name: 'DoubleTree by Hilton JBR', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر والموقع.'},
+    {name: 'Hilton Dubai The Walk', desc: 'سعره متوسط، وقيمته جيدة جدًا كخيار عملي على الممشى.'},
+  ],
+  'دبي (ليجولاند)': [
+    {name: 'LEGOLAND Hotel Dubai', desc: 'سعره مرتفع، وقيمته ممتازة جدًا لأنه الفندق الوحيد المتصل مباشرة بـ LEGOLAND.'},
+    {name: 'Lapita Dubai Parks & Resorts', desc: 'سعره مرتفع، وقيمته قوية جدًا للعائلات بتصميمه الكاريبي وقربه من المنتزهات.'},
+    {name: 'Rove Expo City', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر وموقعه العصري.'},
+    {name: 'Premier Inn Dubai Investments Park', desc: 'سعره جيد، وقيمته ممتازة جدًا لمن يريد إقامة اقتصادية عملية.'},
+    {name: 'Millennium Lakeview Hotel', desc: 'سعره متوسط، وقيمته جيدة جدًا مقابل السعر.'},
+    {name: 'Oaks Ibn Battuta Gate', desc: 'سعره متوسط، وقيمته قوية جدًا لقربه من مول ابن بطوطة.'},
+    {name: 'Delta Hotels by Marriott Jumeirah Beach', desc: 'سعره متوسط إلى مرتفع، وقيمته جيدة جدًا كسلسلة معروفة.'},
+  ],
+  'جزيرة ياس': [
+    {name: 'Hilton Abu Dhabi Yas Island', desc: 'سعره مرتفع، وقيمته ممتازة جدًا لموقعه القريب من جميع منتزهات ياس.'},
+    {name: 'W Abu Dhabi Yas Island', desc: 'سعره مرتفع جدًا، وقيمته قوية جدًا للتصميم الفاخر والإطلالة على حلبة مرسى ياس.'},
+    {name: 'Radisson Blu Yas Island', desc: 'سعره متوسط إلى مرتفع، وقيمته ممتازة جدًا مقابل السعر والموقع.'},
+    {name: 'Crowne Plaza Yas Island', desc: 'سعره متوسط إلى مرتفع، وقيمته جيدة جدًا كخيار عائلي معروف.'},
+    {name: 'Centro Yas Island', desc: 'سعره متوسط، وقيمته ممتازة جدًا لمن يريد إقامة عملية اقتصادية.'},
+    {name: 'DoubleTree by Hilton Yas Island Residences', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا للعائلات بأجنحته الواسعة.'},
+    {name: 'Staybridge Suites Yas Island', desc: 'سعره متوسط، وقيمته جيدة جدًا لمن يريد إقامة طويلة بمطبخ مجهز.'},
+  ],
+  'أبها': [
+    {name: 'Citadines Abha', desc: 'سعره متوسط، وقيمته ممتازة جدًا لمن يريد شقق فندقية مجهزة.'},
+    {name: 'Blue Inn Boutique Abha', desc: 'سعره متوسط، وقيمته قوية جدًا كخيار بوتيكي مميز.'},
+    {name: 'Sarwat Park Hotel', desc: 'سعره جيد، وقيمته ممتازة جدًا مقابل السعر.'},
+    {name: 'Aber Abha', desc: 'سعره متوسط، وقيمته جيدة جدًا كخيار عملي في وسط أبها.'},
+    {name: 'Golden Tulip Abha', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا كسلسلة عالمية معروفة.'},
+    {name: 'Boudl Abha', desc: 'سعره متوسط، وقيمته ممتازة جدًا للعائلات بأجنحته الواسعة.'},
+    {name: 'Nivel Hotel', desc: 'سعره جيد، وقيمته جيدة جدًا مقابل السعر.'},
+  ],
+  'الرياض': [
+    {name: 'Four Seasons Riyadh', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا لأنه من أفخم فنادق الرياض في برج المملكة.'},
+    {name: 'Hyatt Regency Riyadh Olaya', desc: 'سعره مرتفع، وقيمته قوية جدًا لموقعه المركزي في العليا.'},
+    {name: 'Fairmont Riyadh', desc: 'سعره مرتفع، وقيمته ممتازة جدًا للفخامة والخدمة المميزة.'},
+    {name: 'Hilton Riyadh Hotel & Residences', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا كسلسلة عالمية معروفة.'},
+    {name: 'Crowne Plaza RDC Riyadh', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر والموقع.'},
+    {name: 'Braira Qurtubah', desc: 'سعره متوسط، وقيمته جيدة جدًا لمن يريد شقق فندقية عائلية.'},
+    {name: 'Centro Waha by Rotana', desc: 'سعره جيد، وقيمته ممتازة جدًا لمن يريد إقامة عملية اقتصادية.'},
+  ],
+  'ديزني لاند باريس': [
+    {name: 'Disneyland Hotel', desc: 'سعره مرتفع جدًا، وقيمته ممتازة جدًا لأنه الفندق الأيقوني عند مدخل المنتزه مباشرة.'},
+    {name: 'Disney Hotel New York – The Art of Marvel', desc: 'سعره مرتفع جدًا، وقيمته قوية جدًا لمحبي عالم مارفل وقربه من Disney Village.'},
+    {name: 'Disney Newport Bay Club', desc: 'سعره مرتفع، وقيمته ممتازة جدًا بتصميمه البحري الكلاسيكي وقربه من المنتزه.'},
+    {name: 'Disney Sequoia Lodge', desc: 'سعره متوسط إلى مرتفع، وقيمته قوية جدًا للعائلات بأجوائه الجبلية الدافئة.'},
+    {name: 'Grand Magic Hotel Marne-la-Vallée', desc: 'سعره متوسط، وقيمته ممتازة جدًا مقابل السعر مع خدمة تنقل للمنتزه.'},
+    {name: 'Dream Castle Hotel', desc: 'سعره متوسط، وقيمته جيدة جدًا كخيار عائلي بتصميم شبيه بقلاع ديزني.'},
+    {name: 'B&B Hotel près de Disneyland Paris', desc: 'سعره جيد، وقيمته ممتازة جدًا لمن يريد إقامة اقتصادية عملية.'},
+  ],
+};
+
+const ARABI_DATA = {
+  'لندن': { airport:'LHR', bestArea:'ماربل آرتش - إدجوير رود', arabArea:'إدجوير رود', street:'أكسفورد ستريت', square:'بيكاديلي سيركس', landmark:'قصر باكنغهام', park:'هايد بارك', market:'أكسفورد ستريت', food:'إدجوير رود', months:'مايو–سبتمبر', walk:'', stay:'5-7 ليالٍ' },
+  'أمستردام': { airport:'AMS', bestArea:'Centrum', arabArea:'Dam Square', street:'Kalverstraat', square:'Dam Square', landmark:'متحف ريكس', park:'Vondelpark', market:'Kalverstraat', food:'Leidseplein', months:'أبريل–يونيو / سبتمبر', walk:'', stay:'3-4 ليالٍ' },
+  'لاهاي': { airport:'AMS', bestArea:'Centrum', arabArea:'Centrum', street:'Noordeinde', square:'Plein', landmark:'قصر السلام', park:'Scheveningen', market:'Passage', food:'Grote Markt', months:'مايو–سبتمبر', walk:'', stay:'ليلتان' },
+  'بروكسل': { airport:'BRU', bestArea:'Grand Place', arabArea:'Grand Place', street:'Rue Neuve', square:'Grand Place', landmark:'Grand Place', park:'Parc de Bruxelles', market:'Rue Neuve', food:'Grand Place', months:'مايو–سبتمبر', walk:'', stay:'ليلتان' },
+  'برشلونة': { airport:'BCN', bestArea:'ساحة كتالونيا', arabArea:'ساحة كتالونيا', street:'لا رامبلا', square:'Plaça Catalunya', landmark:'ساغرادا فاميليا', park:'Parc Güell', market:'Passeig de Gràcia', food:'الحي القوطي', months:'أبريل–يونيو / سبتمبر', walk:'', stay:'4 ليالٍ' },
+  'مدريد': { airport:'MAD', bestArea:'Gran Vía', arabArea:'Gran Vía', street:'Gran Vía', square:'Plaza Mayor', landmark:'القصر الملكي', park:'El Retiro Park', market:'Gran Vía', food:'Plaza Mayor', months:'أبريل–يونيو / سبتمبر–أكتوبر', walk:'', stay:'3-4 ليالٍ' },
+  'اشبيلية': { airport:'SVQ', bestArea:'Santa Cruz', arabArea:'Santa Cruz', street:'Calle Sierpes', square:'Plaza de España', landmark:'Plaza de España', park:'María Luisa Park', market:'Nervión Plaza', food:'Santa Cruz', months:'مارس–مايو / أكتوبر', walk:'', stay:'ليلتان' },
+  'لشبونة': { airport:'LIS', bestArea:'Baixa', arabArea:'Baixa', street:'Avenida da Liberdade', square:'Praça do Comércio', landmark:'برج بيليم', park:'Eduardo VII Park', market:'Vasco da Gama', food:'Time Out Market', months:'أبريل–يونيو / سبتمبر', walk:'', stay:'3-4 ليالٍ' },
+  'روما': { airport:'FCO', bestArea:'Centro Storico', arabArea:'Centro Storico', street:'Via del Corso', square:'Piazza Navona', landmark:'الكولوسيوم', park:'Villa Borghese', market:'Via del Corso', food:'تراستيفيري', months:'أبريل–يونيو / سبتمبر–أكتوبر', walk:'', stay:'4-5 ليالٍ' },
+  'ميلان': { airport:'MXP', bestArea:'الدومو', arabArea:'الدومو', street:'Via Montenapoleone', square:'Piazza del Duomo', landmark:'كاتدرائية ميلانو', park:'Sempione Park', market:'Galleria Vittorio Emanuele II', food:'Brera', months:'أبريل–يونيو / سبتمبر', walk:'', stay:'3 ليالٍ' },
+  'فلورنسا': { airport:'FLR', bestArea:'Centro Storico', arabArea:'الدومو', street:'Via de\' Calzaiuoli', square:'Piazza della Signoria', landmark:'كاتدرائية فلورنسا', park:'Boboli Gardens', market:'Ponte Vecchio', food:'Piazza della Signoria', months:'أبريل–يونيو / سبتمبر', walk:'', stay:'ليلتان' },
+  'فينيسيا (البندقية)': { airport:'VCE', bestArea:'سان ماركو', arabArea:'سان ماركو', street:'Mercerie', square:'Piazza San Marco', landmark:'ساحة سان ماركو', park:'Giardini della Biennale', market:'Mercerie', food:'Cannaregio', months:'أبريل–يونيو / سبتمبر', walk:'', stay:'ليلتان' },
+  'نابولي': { airport:'NAP', bestArea:'Centro Storico', arabArea:'Centro Storico', street:'Via Toledo', square:'Piazza del Plebiscito', landmark:'بومبي', park:'Lungomare', market:'Galleria Umberto I', food:'Spaccanapoli', months:'أبريل–يونيو / سبتمبر', walk:'', stay:'2-3 ليالٍ' },
+  'براغ': { airport:'PRG', bestArea:'براغ 1', arabArea:'براغ 1', street:'Na Příkopě', square:'ساحة البلدة القديمة', landmark:'جسر تشارلز', park:'تل بيترين', market:'Palladium', food:'البلدة القديمة', months:'أبريل–يونيو / سبتمبر', walk:'✅ نعم', stay:'3-4 ليالٍ' },
+  'بودابست': { airport:'BUD', bestArea:'District V', arabArea:'District V', street:'شارع فاشي', square:'ساحة الأبطال', landmark:'مبنى البرلمان', park:'Margaret Island', market:'Váci Street', food:'البلدة القديمة', months:'أبريل–يونيو / سبتمبر', walk:'✅ نعم', stay:'3 ليالٍ' },
+  'كراكوف': { airport:'KRK', bestArea:'البلدة القديمة', arabArea:'البلدة القديمة', street:'Grodzka', square:'Rynek Główny', landmark:'قلعة فافل', park:'Planty Park', market:'Sukiennice', food:'ساحة السوق', months:'مايو–سبتمبر', walk:'✅ نعم', stay:'2-3 ليالٍ' },
+  'وارسو': { airport:'WAW', bestArea:'Śródmieście', arabArea:'Śródmieście', street:'Nowy Świat', square:'Castle Square', landmark:'المدينة القديمة', park:'Łazienki Park', market:'Złote Tarasy', food:'Nowy Świat', months:'مايو–سبتمبر', walk:'✅ نعم', stay:'2-3 ليالٍ' },
+  'بوخارست': { airport:'OTP', bestArea:'البلدة القديمة', arabArea:'Lipscani', street:'Calea Victoriei', square:'Piața Unirii', landmark:'قصر البرلمان', park:'حديقة هيراستراو', market:'AFI Cotroceni', food:'البلدة القديمة', months:'مايو–سبتمبر', walk:'✅ نعم', stay:'2-3 ليالٍ' },
+  'موسكو': { airport:'SVO', bestArea:'أربات', arabArea:'أربات', street:'أربات', square:'الساحة الحمراء', landmark:'الكرملين', park:'حديقة غوركي', market:'GUM', food:'أربات', months:'يونيو–أغسطس', walk:'✅ نعم', stay:'4 ليالٍ' },
+  'سوتشي': { airport:'AER', bestArea:'وسط سوتشي', arabArea:'وسط سوتشي', street:'Navaginskaya', square:'ساحة الفن', landmark:'منتجع روزا خوتور', park:'Riviera Park', market:'MoreMall', food:'الواجهة البحرية', months:'يونيو–سبتمبر', walk:'⚠️ داخل المدينة نعم، وللجبال يفضل سيارة أو جولات', stay:'3 ليالٍ' },
+  'طشقند': { airport:'TAS', bestArea:'أمير تيمور', arabArea:'أمير تيمور', street:'شارع أمير تيمور', square:'Amir Temur Square', landmark:'مجمع حضرة الإمام', park:'Magic City Park', market:'Chorsu Bazaar', food:'Broadway', months:'أبريل–مايو / سبتمبر–أكتوبر', walk:'✅ نعم', stay:'2-3 ليالٍ' },
+  'سمرقند': { airport:'SKD', bestArea:'ريجستان', arabArea:'ريجستان', street:'University Boulevard', square:'Registan Square', landmark:'ميدان ريجستان', park:'Central Park', market:'Siab Bazaar', food:'ريجستان', months:'أبريل–يونيو / سبتمبر', walk:'✅ نعم', stay:'2-3 ليالٍ' },
+  'بخارى': { airport:'BHK', bestArea:'البلدة القديمة', arabArea:'Lyabi-Hauz', street:'Lyabi-Hauz', square:'Lyabi-Hauz', landmark:'قلعة آرك', park:'Samanid Park', market:'Trading Domes', food:'البلدة القديمة', months:'أبريل–مايو / سبتمبر', walk:'✅ نعم', stay:'ليلتان' },
+  'ألماتي': { airport:'ALA', bestArea:'Dostyk', arabArea:'Dostyk', street:'Dostyk Avenue', square:'Republic Square', landmark:'جبل كوك توبي', park:'First President Park', market:'Mega Alma-Ata', food:'Dostyk', months:'يونيو–سبتمبر', walk:'⚠️ داخل المدينة نعم، وللجبال يفضل سيارة', stay:'3-4 ليالٍ' },
+  'أستانا': { airport:'NQZ', bestArea:'Nurzhol', arabArea:'Nurzhol', street:'Nurzhol Boulevard', square:'Independence Square', landmark:'برج بايتيريك', park:'Botanical Garden', market:'Khan Shatyr', food:'Nurzhol', months:'يونيو–سبتمبر', walk:'✅ نعم', stay:'2-3 ليالٍ' },
+  'طوكيو': { airport:'HND / NRT', bestArea:'شينجوكو', arabArea:'شينجوكو', street:'أوموتيساندو', square:'شيبويا سكوير', landmark:'معبر شيبويا', park:'شينجوكو جيون', market:'جينزا', food:'شينجوكو', months:'مارس–مايو / أكتوبر–نوفمبر', walk:'✅ نعم', stay:'5 ليالٍ' },
+  'كيوتو': { airport:'KIX', bestArea:'كاواراماتشي', arabArea:'كاواراماتشي', street:'Shijo Street', square:'Shijo Kawaramachi', landmark:'ضريح فوشيمي إيناري', park:'Maruyama Park', market:'Nishiki Market', food:'بونتوتشو', months:'مارس–مايو / نوفمبر', walk:'✅ نعم', stay:'3 ليالٍ' },
+  'أوساكا': { airport:'KIX', bestArea:'نامبا', arabArea:'نامبا', street:'دوتونبوري', square:'نامبا', landmark:'قلعة أوساكا', park:'Nakanoshima Park', market:'شينسايباشي', food:'دوتونبوري', months:'مارس–مايو / أكتوبر', walk:'✅ نعم', stay:'3-4 ليالٍ' },
+  'سيول': { airport:'ICN', bestArea:'ميونغ دونغ', arabArea:'ميونغ دونغ', street:'ميونغ دونغ', square:'Gwanghwamun', landmark:'قصر جيونج بوكجونج', park:'Namsan Park', market:'ميونغ دونغ', food:'هونغداي وميونغ دونغ', months:'أبريل–مايو / أكتوبر', walk:'✅ نعم', stay:'4-5 ليالٍ' },
+  'جزيرة جيجو': { airport:'CJU', bestArea:'مدينة جيجو', arabArea:'مدينة جيجو', street:'Chilseong-ro', square:'وسط المدينة', landmark:'Seongsan Ilchulbong', park:'Hallim Park', market:'Dongmun Market', food:'Black Pork Street', months:'أبريل–يونيو / سبتمبر', walk:'⚠️ يفضل سيارة', stay:'3 ليالٍ' },
+  'كوالالمبور': { airport:'KUL', bestArea:'بوكيت بينتانغ', arabArea:'بوكيت بينتانغ', street:'Jalan Bukit Bintang', square:'KLCC', landmark:'برجا بتروناس', park:'KLCC Park', market:'Pavilion', food:'Jalan Alor', months:'مايو–يوليو / ديسمبر–فبراير', walk:'✅ نعم', stay:'4 ليالٍ' },
+  'بينانج': { airport:'PEN', bestArea:'جورج تاون', arabArea:'جورج تاون', street:'Armenian Street', square:'Padang Kota', landmark:'Penang Hill', park:'Penang Botanic Gardens', market:'Gurney Plaza', food:'Gurney Drive', months:'ديسمبر–فبراير', walk:'⚠️ نعم داخل جورج تاون فقط', stay:'3 ليالٍ' },
+  'لنكاوي': { airport:'LGK', bestArea:'Pantai Cenang', arabArea:'Pantai Cenang', street:'Cenang Beach Road', square:'Pantai Cenang', landmark:'Sky Bridge', park:'Kilim Geoforest', market:'Cenang Mall', food:'Pantai Cenang', months:'ديسمبر–مارس', walk:'⚠️ يفضل سيارة', stay:'3 ليالٍ' },
+  'مرتفعات كاميرون': { airport:'IPH', bestArea:'Tanah Rata', arabArea:'Tanah Rata', street:'Main Road', square:'Tanah Rata', landmark:'مزارع الشاي', park:'Mossy Forest', market:'سوق Kea Farm', food:'Tanah Rata', months:'فبراير–أبريل / يوليو–سبتمبر', walk:'⚠️ يفضل سيارة', stay:'ليلتان' },
+  'بانكوك': { airport:'BKK', bestArea:'سوخومفيت', arabArea:'نانا (سوخومفيت)', street:'Sukhumvit Road', square:'Siam Square', landmark:'القصر الكبير', park:'لومبيني بارك', market:'ICONSIAM', food:'سوخومفيت', months:'نوفمبر–فبراير', walk:'✅ نعم', stay:'4-5 ليالٍ' },
+  'باتايا': { airport:'UTP / BKK', bestArea:'سنترال باتايا', arabArea:'سنترال باتايا', street:'Beach Road', square:'Dolphin Circle', landmark:'Sanctuary of Truth', park:'Nong Nooch (خارج المدينة)', market:'Terminal 21', food:'Beach Road', months:'نوفمبر–فبراير', walk:'✅ نعم', stay:'3-4 ليالٍ' },
+  'بوكيت': { airport:'HKT', bestArea:'باتونغ', arabArea:'باتونغ', street:'Bangla Road', square:'Patong Center', landmark:'جزر في في', park:'Promthep Cape', market:'Jungceylon', food:'Patong Beach', months:'نوفمبر–أبريل', walk:'⚠️ يفضل دراجة أو سيارة', stay:'4 ليالٍ' },
+  'شيانغ ماي': { airport:'CNX', bestArea:'المدينة القديمة', arabArea:'المدينة القديمة', street:'Nimmanhaemin Road', square:'Three Kings', landmark:'Doi Suthep', park:'Royal Park Rajapruek', market:'Night Bazaar', food:'Nimman', months:'نوفمبر–فبراير', walk:'⚠️ نعم داخل السنتر فقط', stay:'3 ليالٍ' },
+  'هانوي': { airport:'HAN', bestArea:'الحي القديم', arabArea:'الحي القديم', street:'Hang Ngang', square:'Đông Kinh Nghĩa Thục', landmark:'بحيرة هوان كيم', park:'البحيرة', market:'Dong Xuan', food:'الحي القديم', months:'أكتوبر–أبريل', walk:'✅ نعم', stay:'3 ليالٍ' },
+  'دا نانغ': { airport:'DAD', bestArea:'شاطئ ماي خي', arabArea:'شاطئ ماي خي', street:'Vo Nguyen Giap', square:'Dragon Bridge', landmark:'Ba Na Hills', park:'My Khe Beach', market:'Han Market', food:'My Khe', months:'فبراير–أغسطس', walk:'⚠️ يفضل سيارة للرحلات', stay:'3 ليالٍ' },
+  'هوي آن': { airport:'DAD', bestArea:'البلدة القديمة', arabArea:'البلدة القديمة', street:'Tran Phu', square:'Japanese Bridge', landmark:'المدينة القديمة', park:'An Hoi Riverside', market:'Night Market', food:'Riverside', months:'فبراير–أغسطس', walk:'✅ نعم', stay:'ليلتان' },
+  'هوشي منه': { airport:'SGN', bestArea:'District 1', arabArea:'District 1', street:'Nguyen Hue', square:'Nguyen Hue', landmark:'Ben Thanh Market', park:'Tao Dan Park', market:'Ben Thanh', food:'District 1', months:'ديسمبر–أبريل', walk:'✅ نعم', stay:'3 ليالٍ' },
+  'جاكرتا': { airport:'CGK', bestArea:'ثامرين', arabArea:'ثامرين', street:'Jalan Thamrin', square:'Bundaran HI', landmark:'Monas', park:'Menteng Park', market:'Grand Indonesia', food:'Plaza Indonesia', months:'يونيو–سبتمبر', walk:'✅ نعم', stay:'2-3 ليالٍ' },
+  'باندونغ': { airport:'BDO', bestArea:'Braga', arabArea:'Braga', street:'Braga Street', square:'Alun-Alun', landmark:'Kawah Putih', park:'Forest Walk', market:'Paris Van Java', food:'Braga', months:'يونيو–سبتمبر', walk:'⚠️ نعم داخل المركز فقط', stay:'ليلتان' },
+  'يوغياكارتا': { airport:'YIA', bestArea:'Malioboro', arabArea:'Malioboro', street:'Malioboro Street', square:'Kilometer Zero', landmark:'معبد بوروبودور', park:'Alun-Alun Kidul', market:'Malioboro', food:'Malioboro', months:'مايو–سبتمبر', walk:'⚠️ يفضل سيارة للمعابد', stay:'2-3 ليالٍ' },
+  'بالي (أوبود)': { airport:'DPS', bestArea:'Monkey Forest', arabArea:'Monkey Forest', street:'Monkey Forest Road', square:'Ubud Palace', landmark:'Tegallalang', park:'Campuhan Ridge Walk', market:'Ubud Market', food:'Monkey Forest Road', months:'مايو–سبتمبر', walk:'⚠️ يفضل سكوتر أو سيارة', stay:'3-4 ليالٍ' },
+  'ميكونوس': { airport:'JMK', bestArea:'مدينة ميكونوس (Chora)', arabArea:'Chora', street:'Matogianni Street', square:'Manto Square', landmark:'طواحين ميكونوس', park:'Little Venice Promenade', market:'Matogianni', food:'Little Venice', months:'مايو–يونيو / سبتمبر', walk:'⚠️ داخل شورا نعم، لكن للشواطئ يفضل سيارة أو ATV', stay:'3 ليالٍ' },
+  'سانتوريني': { airport:'JTR', bestArea:'فيرا أو أويا', arabArea:'فيرا', street:'Gold Street (Fira)', square:'Theotokopoulou Square', landmark:'أويا وغروب الشمس', park:'ممشى فيرا–إيميروفيغلي', market:'Fira Market', food:'فيرا', months:'مايو–يونيو / سبتمبر–أكتوبر', walk:'⚠️ يفضل سيارة أو ATV للتنقل بين القرى', stay:'3-4 ليالٍ' },
+  'كريت (هيراكليون)': { airport:'HER', bestArea:'هيراكليون أو خانيا القديمة', arabArea:'خانيا القديمة', street:'Halidon Street', square:'Eleftherios Venizelos Square', landmark:'قصر كنوسوس', park:'الميناء الفينيسي', market:'Agora Market', food:'الميناء القديم', months:'مايو–يونيو / سبتمبر', walk:'⚠️ يفضل سيارة لأن الجزيرة كبيرة', stay:'5-7 ليالٍ' },
+  'رودس': { airport:'RHO', bestArea:'مدينة رودس القديمة', arabArea:'المدينة القديمة', street:'Socratous Street', square:'Hippocrates Square', landmark:'قصر السيد الأكبر', park:'Mandraki Harbour', market:'Socratous Street', food:'المدينة القديمة', months:'مايو–يونيو / سبتمبر', walk:'⚠️ يفضل سيارة لزيارة ليندوس والشواطئ', stay:'3-4 ليالٍ' },
+  'اسطنبول': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'طرابزون': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ داخل المدينة نعم، لكن للمرتفعات يفضل سيارة أو سائق', stay:'' },
+  'أوزنجول': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ داخل القرية نعم، لكن للوصول إليها والرحلات يفضل سيارة', stay:'' },
+  'إيدر': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ داخل الهضبة نعم، لكن للوصول إليها يفضل سيارة', stay:'' },
+  'ريزة': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ داخل المدينة نعم، وللجبال يفضل سيارة', stay:'' },
+  'سبناجا': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ يفضل سيارة للاستمتاع بالبحيرة والأنشطة', stay:'' },
+  'أنطاليا': { airport:'AYT', bestArea:'كاليتشي (المدينة القديمة) أو لارا', arabArea:'لارا', street:'كاليتشي', square:'ميدان كاليتشي', landmark:'شلالات دودن', park:'مرسى أنطاليا', market:'كاليتشي', food:'لارا', months:'أبريل–يونيو / سبتمبر–أكتوبر', walk:'⚠️ داخل لارا وكاليتشي نعم، وللشلالات والمنتجعات يفضل سيارة', stay:'4-5 ليالٍ' },
+  'بودروم': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ يفضل سيارة للتنقل بين الخلجان والشواطئ', stay:'' },
+  'تبليسي': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'باتومي': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'باكورياني': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ يفضل سيارة أو تاكسي', stay:'' },
+  'باكو': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'قابالا': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ يفضل سيارة أو سائق', stay:'' },
+  'يريفان': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'كوتور': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'بودفا': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'تيفات': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'بيراست': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'هرسك نوفي': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'بودغوريتسا': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'زغرب': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'دوبروفنيك': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'سبليت': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'بحيرات بليتفيتشه': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'❌ لا، يفضل سيارة أو باص سياحي للوصول إليها', stay:'' },
+  'سراييفو': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'موستار': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'فيينا': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'سالزبورغ': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'زيلامسي': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ نعم داخل المدينة، وللقرى المحيطة يفضل سيارة', stay:'' },
+  'كابرون': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'⚠️ نعم داخل المدينة، وللرحلات يفضل سيارة', stay:'' },
+  'إنسبروك': { airport:'', bestArea:'', arabArea:'', street:'', square:'', landmark:'', park:'', market:'', food:'', months:'', walk:'✅ نعم', stay:'' },
+  'القاهرة': { airport:'CAI', bestArea:'وسط البلد / الزمالك / التجمع الخامس', arabArea:'الزمالك', street:'شارع طلعت حرب', square:'ميدان التحرير', landmark:'أهرامات الجيزة', park:'كورنيش النيل', market:'شارع المعز', food:'الزمالك وشارع التسعين', months:'أكتوبر–أبريل', walk:'⚠️ داخل كل حي نعم، لكن لا يُنصح بالسيارة الخاصة للزحام؛ استخدم Uber بين الأحياء', stay:'3-4 ليالٍ' },
+  'شرم الشيخ': { airport:'SSH', bestArea:'خليج نعمة أو شاركس باي', arabArea:'خليج نعمة', street:'سوهو سكوير', square:'ميدان السلام', landmark:'جزيرة تيران', park:'الممشى السياحي', market:'سوهو سكوير', food:'خليج نعمة', months:'مارس–مايو / أكتوبر–نوفمبر', walk:'✅ لا تحتاج سيارة، معظم الفنادق قريبة من بعضها', stay:'5-7 ليالٍ' },
+  'الغردقة': { airport:'HRG', bestArea:'الممشى أو سهل حشيش', arabArea:'الممشى', street:'شارع الممشى السياحي', square:'ميدان الغردقة', landmark:'الجونة', park:'الممشى البحري', market:'سنسيتي مول', food:'الممشى', months:'مارس–مايو / أكتوبر–نوفمبر', walk:'✅ غير ضرورية غالبًا داخل المنتجعات', stay:'5-7 ليالٍ' },
+  'الساحل الشمالي': { airport:'HBE', bestArea:'مراسي أو هاسيندا', arabArea:'مراسي', street:'العلمين الجديدة', square:'ميدان العلمين', landmark:'سيدي عبد الرحمن', park:'شاطئ مراسي', market:'العلمين الجديدة', food:'مراسي', months:'يونيو–أغسطس', walk:'❌ السيارة ضرورية للتنقل بين القرى المتباعدة', stay:'4-7 ليالٍ' },
+  'المنامة': { airport:'BAH', bestArea:'الجفير أو السيف', arabArea:'الجفير', street:'باب البحرين', square:'ساحة باب البحرين', landmark:'باب البحرين', park:'كورنيش السيف', market:'City Centre Bahrain', food:'الجفير', months:'نوفمبر–مارس', walk:'⚠️ يفضل Uber أو سيارة للتنقل بين المناطق', stay:'2-3 ليالٍ' },
+  'صلالة': { airport:'SLL', bestArea:'الدهاريز أو الحافة', arabArea:'الحافة', street:'الحافة', square:'ميدان الحافة', landmark:'شلالات وادي درباط', park:'عين رزات', market:'Salalah Gardens Mall', food:'الحافة', months:'يونيو–سبتمبر (موسم الخريف)', walk:'❌ السيارة ضرورية جدًا للتنقل بين الجبال والشواطئ', stay:'4-5 ليالٍ' },
+  'الدوحة': { airport:'DOH', bestArea:'West Bay أو The Pearl', arabArea:'Msheireb', street:'سوق واقف', square:'كورنيش الدوحة', landmark:'سوق واقف', park:'كورنيش الدوحة', market:'Doha Festival City', food:'سوق واقف', months:'نوفمبر–مارس', walk:'✅ غير ضرورية، Uber متاح بسهولة', stay:'3-4 ليالٍ' },
+  'جزيرة بنانا': { airport:'DOH', bestArea:'منتجع الجزيرة بالكامل', arabArea:'', street:'', square:'', landmark:'الشاطئ الخاص', park:'', market:'', food:'', months:'أكتوبر–أبريل', walk:'🚤 يُصل إليها بقارب خاص من مرسى الدوحة، لا حاجة لسيارة', stay:'2-3 ليالٍ' },
+  'دبي (داون تاون)': { airport:'DXB', bestArea:'داون تاون دبي', arabArea:'داون تاون دبي', street:'شارع الشيخ زايد', square:'ساحة برج خليفة', landmark:'برج خليفة', park:'حديقة برج خليفة', market:'دبي مول', food:'دبي مول', months:'نوفمبر–مارس', walk:'✅ يمكن التنقل مشيًا داخل المنطقة نفسها', stay:'3-4 ليالٍ' },
+  'دبي (جميرا بيتش)': { airport:'DXB', bestArea:'JBR', arabArea:'JBR', street:'The Walk', square:'The Beach', landmark:'برج العرب', park:'The Walk JBR', market:'The Beach Mall', food:'The Walk', months:'نوفمبر–مارس', walk:'✅ الممشى بالكامل قابل للمشي', stay:'2-3 ليالٍ' },
+  'دبي (ليجولاند)': { airport:'DXB', bestArea:'دبي باركس آند ريزورتس', arabArea:'', street:'', square:'', landmark:'LEGOLAND Dubai', park:'', market:'', food:'', months:'نوفمبر–مارس', walk:'❌ يفضل سيارة أو مواصلات مخصصة بين المنتزهات', stay:'2 ليالٍ' },
+  'جزيرة ياس': { airport:'AUH', bestArea:'جزيرة ياس', arabArea:'', street:'', square:'', landmark:'Ferrari World', park:'', market:'Yas Mall', food:'Yas Mall', months:'نوفمبر–مارس', walk:'✅ داخل الجزيرة يوجد مكوك مجاني بين المنتزهات', stay:'2-3 ليالٍ' },
+  'أبها': { airport:'AHB', bestArea:'وسط أبها أو طريق السودة', arabArea:'وسط أبها', street:'شارع الفن', square:'', landmark:'طريق السودة', park:'طريق السودة', market:'عسير مول', food:'شارع الفن', months:'مايو–سبتمبر (الصيف)', walk:'❌ يُنصح بالسيارة بشدة بسبب تباعد المعالم', stay:'3-4 ليالٍ' },
+  'الرياض': { airport:'RUH', bestArea:'العليا أو حي الصحافة', arabArea:'العليا', street:'بوليفارد وورلد', square:'', landmark:'بوليفارد رياض سيتي', park:'حديقة الملك عبدالله', market:'الرياض بارك', food:'العليا', months:'نوفمبر–مارس', walk:'❌ السيارة ضرورية في أغلب الرحلات بسبب اتساع المدينة', stay:'3-4 ليالٍ' },
+  'ديزني لاند باريس': { airport:'CDG', bestArea:'Val d\'Europe أو داخل المنتزه', arabArea:'', street:'', square:'', landmark:'قلعة الأميرة النائمة', park:'', market:'Val d\'Europe', food:'Disney Village', months:'أبريل–يونيو / سبتمبر–أكتوبر', walk:'✅ التنقل بين الفنادق والمنتزه مشيًا أو بمكوك مجاني', stay:'2-3 ليالٍ' },
 };
 
 // ---------- Hotels Modal Functions ----------
+// Custom (user-added) hotels live only in memory for this page session — not saved to disk.
+let CUSTOM_HOTELS = {};
+let currentHotelsCity = null;
+let currentHotelsFlag = '🏨';
+
+function escapeHtml(str){
+  return String(str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function hotelPriceTag(h){
+  if(h.tag){
+    const tagIcons = {
+      'سيتي سنتر':'📍', 'قريب من معلم':'🗺️', 'أفضل قيمة':'💎',
+      'سلسلة عالمية':'🌐', 'بديل قوي':'⭐', 'خيار معروف':'✅'
+    };
+    const icon = tagIcons[h.tag] || '🏨';
+    return `<span class="hotel-price-tag">${icon} ${h.tag}</span>`;
+  }
+  const desc = h.desc || '';
+  if(desc.includes('اقتصادي')) return '<span class="hotel-price-tag">💰 اقتصادي</span>';
+  if(desc.includes('جيد') && !desc.includes('متوسط')) return '<span class="hotel-price-tag">💰💰 سعر جيد</span>';
+  if(desc.includes('متوسط')) return '<span class="hotel-price-tag">💰💰💰 متوسط</span>';
+  if(desc.includes('مرتفع')) return '<span class="hotel-price-tag">💰💰💰💰 مرتفع</span>';
+  return '<span class="hotel-price-tag">🏨 فندق موصى به</span>';
+}
+
 function openHotelsModal(cityName, flag, country){
-  const list = document.getElementById('hotels-list');
+  currentHotelsCity = cityName;
+  currentHotelsFlag = flag || '🏨';
+
   const cityHeader = document.getElementById('hotels-city-name');
   const cityFlag = document.getElementById('hotels-city-flag');
-  const cityCount = document.getElementById('hotels-city-count');
-
   cityHeader.textContent = 'فنادق ' + cityName;
-  cityFlag.textContent = flag || '🏨';
+  cityFlag.textContent = currentHotelsFlag;
 
-  const hotels = HOTELS_DATA[cityName];
-  if(!hotels || hotels.length === 0){
-    list.innerHTML = '<p class="hotels-empty">لا توجد بيانات فنادق متوفرة لهذه المدينة حاليًا.</p>';
-    cityCount.textContent = '';
-  } else {
-    cityCount.textContent = hotels.length + ' فندق / فنادق';
-    list.innerHTML = hotels.map((h, i) => {
-      // Prefer an explicit category tag (سيتي سنتر / قريب من معلم / أفضل قيمة / سلسلة عالمية) when present
-      let priceTag = '';
-      if(h.tag){
-        const tagIcons = {
-          'سيتي سنتر':'📍', 'قريب من معلم':'🗺️', 'أفضل قيمة':'💎',
-          'سلسلة عالمية':'🌐', 'بديل قوي':'⭐', 'خيار معروف':'✅'
-        };
-        const icon = tagIcons[h.tag] || '🏨';
-        priceTag = `<span class="hotel-price-tag">${icon} ${h.tag}</span>`;
-      } else {
-        // Fallback: extract price indicator from description
-        const desc = h.desc || '';
-        if(desc.includes('اقتصادي')) priceTag = '<span class="hotel-price-tag">💰 اقتصادي</span>';
-        else if(desc.includes('جيد') && !desc.includes('متوسط')) priceTag = '<span class="hotel-price-tag">💰💰 سعر جيد</span>';
-        else if(desc.includes('متوسط')) priceTag = '<span class="hotel-price-tag">💰💰💰 متوسط</span>';
-        else if(desc.includes('مرتفع')) priceTag = '<span class="hotel-price-tag">💰💰💰💰 مرتفع</span>';
-        else priceTag = '<span class="hotel-price-tag">🏨 فندق موصى به</span>';
-      }
-
-      return `<div class="hotel-item">
-        <div class="hotel-name">${i+1}. ${h.name}</div>
-        <div class="hotel-desc">${h.desc}</div>
-        ${priceTag}
-      </div>`;
-    }).join('');
-  }
+  renderHotelsList();
 
   const overlay = document.getElementById('hotels-overlay');
   overlay.style.display = 'flex';
@@ -3399,8 +3781,132 @@ function openHotelsModal(cityName, flag, country){
   overlay.classList.add('show');
 }
 
+function renderHotelsList(){
+  const list = document.getElementById('hotels-list');
+  const cityCount = document.getElementById('hotels-city-count');
+  const cityName = currentHotelsCity;
+
+  const baseHotels = HOTELS_DATA[cityName] || [];
+  const customHotels = CUSTOM_HOTELS[cityName] || [];
+  const allHotels = [...baseHotels, ...customHotels];
+
+  cityCount.textContent = allHotels.length > 0 ? (allHotels.length + ' فندق / فنادق') : '';
+
+  const itemsHtml = allHotels.length === 0
+    ? '<p class="hotels-empty">لا توجد بيانات فنادق متوفرة لهذه المدينة حاليًا. أضف أول فندق بنفسك 👇</p>'
+    : allHotels.map((h, i) => {
+        const isCustom = i >= baseHotels.length;
+        const customIdx = i - baseHotels.length;
+        return `<div class="hotel-item${isCustom ? ' hotel-item-custom' : ''}">
+          <div class="hotel-name">${i+1}. ${escapeHtml(h.name)}</div>
+          <div class="hotel-desc">${escapeHtml(h.desc)}</div>
+          ${hotelPriceTag(h)}
+          ${isCustom ? `<button class="hotel-remove" onclick="removeCustomHotel(${customIdx})">🗑️ حذف</button>` : ''}
+        </div>`;
+      }).join('');
+
+  const addCardHtml = `<div class="hotel-add-card" id="hotel-add-card" onclick="showAddHotelForm()">➕ إضافة فندق</div>`;
+
+  list.innerHTML = itemsHtml + addCardHtml;
+}
+
+function showAddHotelForm(){
+  const card = document.getElementById('hotel-add-card');
+  if(!card) return;
+  card.outerHTML = `
+    <div class="hotel-add-form" id="hotel-add-form">
+      <input id="haf-name" type="text" placeholder="اسم الفندق" />
+      <textarea id="haf-desc" placeholder="وصف مختصر (السعر، الموقع، ليه تنصح بيه...)"></textarea>
+      <div class="haf-actions">
+        <button class="haf-save" onclick="saveNewHotel()">حفظ الفندق</button>
+        <button class="haf-cancel" onclick="renderHotelsList()">إلغاء</button>
+      </div>
+    </div>`;
+  const nameInput = document.getElementById('haf-name');
+  if(nameInput) nameInput.focus();
+}
+
+function saveNewHotel(){
+  const nameEl = document.getElementById('haf-name');
+  const descEl = document.getElementById('haf-desc');
+  const name = (nameEl.value || '').trim();
+  const desc = (descEl.value || '').trim();
+
+  if(!name){
+    nameEl.style.borderColor = '#dc2626';
+    nameEl.focus();
+    return;
+  }
+
+  if(!CUSTOM_HOTELS[currentHotelsCity]) CUSTOM_HOTELS[currentHotelsCity] = [];
+  CUSTOM_HOTELS[currentHotelsCity].push({ name, desc: desc || 'فندق مُضاف يدويًا.' });
+
+  renderHotelsList();
+}
+
+function removeCustomHotel(customIdx){
+  if(!CUSTOM_HOTELS[currentHotelsCity]) return;
+  CUSTOM_HOTELS[currentHotelsCity].splice(customIdx, 1);
+  renderHotelsList();
+}
 function closeHotelsModal(){
   const overlay = document.getElementById('hotels-overlay');
+  overlay.classList.remove('show');
+  const onEnd = function(e){
+    if(e.target !== overlay) return;
+    overlay.style.display = 'none';
+    overlay.removeEventListener('transitionend', onEnd);
+  };
+  overlay.addEventListener('transitionend', onEnd);
+}
+
+// ---------- Arab Traveler Modal Functions ----------
+const ARABI_FIELDS = [
+  { key:'airport', icon:'✈️', label:'المطار' },
+  { key:'bestArea', icon:'🏙️', label:'أفضل منطقة للسكن' },
+  { key:'arabArea', icon:'❤️', label:'المنطقة المفضلة للعرب' },
+  { key:'street', icon:'🛣️', label:'أشهر شارع' },
+  { key:'square', icon:'📍', label:'أهم ميدان' },
+  { key:'landmark', icon:'⭐', label:'أهم معلم' },
+  { key:'park', icon:'🌳', label:'أهم حديقة / ممشى' },
+  { key:'market', icon:'🛍️', label:'أشهر سوق' },
+  { key:'food', icon:'🍽️', label:'أشهر منطقة للمطاعم' },
+  { key:'months', icon:'🌸', label:'أفضل شهور للزيارة' },
+  { key:'walk', icon:'🚶‍♂️', label:'تقدر تتنقل بدون سيارة؟' },
+  { key:'stay', icon:'🕒', label:'مدة الإقامة المقترحة' },
+];
+
+function openArabiModal(cityName, flag, country){
+  const cityHeader = document.getElementById('arabi-city-name');
+  const cityFlag = document.getElementById('arabi-city-flag');
+  const body = document.getElementById('arabi-body');
+
+  cityHeader.textContent = 'مسافر عربي في ' + cityName + '؟';
+  cityFlag.textContent = flag || '🧭';
+
+  const info = ARABI_DATA[cityName];
+  if(!info){
+    body.innerHTML = '<p class="arabi-empty">لسه معندناش دليل "مسافر عربي" مفصّل للمدينة دي، هنضيفه قريبًا.</p>';
+  } else {
+    body.innerHTML = ARABI_FIELDS
+      .filter(f => info[f.key])
+      .map(f => `
+        <div class="arabi-row">
+          <span class="ar-icon">${f.icon}</span>
+          <span class="ar-label">${f.label}</span>
+          <span class="ar-value">${escapeHtml(info[f.key])}</span>
+        </div>
+      `).join('');
+  }
+
+  const overlay = document.getElementById('arabi-overlay');
+  overlay.style.display = 'flex';
+  void overlay.offsetWidth;
+  overlay.classList.add('show');
+}
+
+function closeArabiModal(){
+  const overlay = document.getElementById('arabi-overlay');
   overlay.classList.remove('show');
   const onEnd = function(e){
     if(e.target !== overlay) return;
@@ -3414,6 +3920,7 @@ function closeHotelsModal(){
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     closeHotelsModal();
+    closeArabiModal();
   }
 });
 
@@ -3579,6 +4086,22 @@ ${buildAtlasContext()}`;
   </div>
 </div>
 
+<!-- Arab Traveler Modal -->
+<div id="arabi-overlay" onclick="if(event.target===this) closeArabiModal()">
+  <div id="arabi-modal">
+    <button id="arabi-close" onclick="closeArabiModal()">×</button>
+    <div class="hotels-city-header" id="arabi-city-header">
+      <span class="city-flag" id="arabi-city-flag">🧭</span>
+      <div class="city-info">
+        <div class="city-name" id="arabi-city-name">مسافر عربي؟</div>
+        <div class="city-count" id="arabi-city-count"></div>
+      </div>
+    </div>
+    <p class="arabi-sub">دليل سريع لأي مسافر عربي: أفضل منطقة للسكن، أشهر شارع وميدان، أهم معلم وحديقة وسوق، ومنطقة المطاعم — كل حاجة محتاجها قبل ما تحجز.</p>
+    <div id="arabi-body"></div>
+  </div>
+</div>
+
   <!-- AI Assistant Widget -->
   <button id="ai-fab" onclick="openAiChat()">
     <span class="dot"></span> 🤖 اسأل عِمران
@@ -3617,4 +4140,4 @@ ${buildAtlasContext()}`;
   </div>
 
 </body>
-</html>
+	</html>
