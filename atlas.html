@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1579,7 +1581,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
   /* ===================== AI Assistant Widget ===================== */
   #ai-fab{
-    position:fixed; left:24px; bottom:24px; z-index:1200;
+    position:fixed; right:24px; bottom:24px; z-index:1200;
     display:flex; align-items:center; gap:8px;
     background:var(--primary); color:#fff; border:none;
     padding:13px 20px; border-radius:999px; font-weight:800; font-size:14px;
@@ -1592,12 +1594,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
   #ai-overlay{
     display:none; position:fixed; inset:0; background:rgba(15,23,42,.45);
-    z-index:1300; backdrop-filter:blur(2px); align-items:flex-end; justify-content:flex-start;
+    z-index:1300; backdrop-filter:blur(2px); align-items:flex-end; justify-content:flex-end;
   }
   #ai-overlay.open{ display:flex; }
   #ai-modal{
     width:min(420px, 100vw); height:min(640px, 92vh);
-    background:var(--surface); border-radius:20px 20px 0 0; margin:0 0 0 16px;
+    background:var(--surface); border-radius:20px 20px 0 0; margin:0 16px 0 0;
     display:flex; flex-direction:column; overflow:hidden;
     box-shadow:0 -10px 40px rgba(15,23,42,.25);
     animation:ai-slide-up .28s ease;
@@ -2318,8 +2320,8 @@ function flyToCity(mapKey, lat, lng){
 
 // ---------- Leaflet: overview map ----------
 const overviewMap = L.map('map-overview', { scrollWheelZoom:false }).setView([20,40], 2);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution:'&copy; OpenStreetMap contributors',
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+  attribution:'Tiles &copy; Esri',
   maxZoom:18
 }).addTo(overviewMap);
 
@@ -2515,8 +2517,8 @@ function initCountryMap(region, country, idx){
   // frame the map around just this country's cities
   const bounds = country.cities.map(city=>[city.lat, city.lng]);
   const map = L.map(`map-${key}`, { scrollWheelZoom:false }).setView(region.center, region.zoom);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:'&copy; OpenStreetMap contributors',
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution:'Tiles &copy; Esri',
     maxZoom:18
   }).addTo(map);
 
@@ -3428,13 +3430,14 @@ document.addEventListener('click', function(e){
   target.scrollIntoView({ behavior:'smooth', block:'start' });
 }, false);
 
-// ===================== AI Assistant (Claude API) =====================
-// Uses the visitor's own Anthropic API key (entered below, kept only in memory
-// for this page load — never saved to disk/localStorage). Calls the real
-// Anthropic Messages API directly from the browser.
+// ===================== AI Assistant (Gemini API - مجاني) =====================
+// بيستخدم مفتاح Gemini API بتاع الزائر نفسه (بيتحط تحت) — بيفضل في الذاكرة بس لحد
+// ما يقفل الصفحة، مش بيتخزن على القرص ولا بيتبعت لحد غير Google مباشرة.
+// اعمل مفتاحك المجاني من: https://aistudio.google.com/apikey
 let AI_API_KEY = '';
-let AI_HISTORY = [];
+let AI_HISTORY = []; // [{role:'user'|'model', parts:[{text}]}]
 let AI_BUSY = false;
+const AI_MODEL = 'gemini-2.5-flash'; // موديل مجاني وسريع، مناسب للدردشة
 
 // Build a compact text summary of the whole atlas (every region > country > city)
 // so the model can answer questions grounded in this exact data.
@@ -3456,7 +3459,7 @@ function buildAtlasContext(){
 function openAiChat(){
   document.getElementById('ai-overlay').classList.add('open');
   if(AI_HISTORY.length === 0){
-    addAiMessage('system', 'أهلاً! أنا مساعد أطلس الباكدجات السياحية 🧭 اسألني عن أي دولة أو مدينة في الأطلس، أو اطلب مقارنة، أو خطة رحلة. لازم تحط مفتاح Claude API فوق الأول عشان أقدر أرد.');
+    addAiMessage('system', 'أهلاً، أنا عِمران 🧭 مساعد أطلس الباكدجات السياحية الذكي! اسألني عن أي دولة أو مدينة في الأطلس، أو اطلب مقارنة، أو خطة رحلة. لازم تحط مفتاح Gemini API المجاني فوق الأول عشان أقدر أرد.');
   }
 }
 function closeAiChat(){
@@ -3498,37 +3501,35 @@ async function sendAiMessage(){
   if(!text) return;
 
   if(!AI_API_KEY){
-    addAiMessage('system', '⚠️ حط مفتاح Claude API فوق واضغط "حفظ" الأول.');
+    addAiMessage('system', '⚠️ حط مفتاح Gemini API المجاني فوق واضغط "حفظ" الأول (aistudio.google.com/apikey).');
     return;
   }
 
   input.value = '';
   addAiMessage('user', text);
-  AI_HISTORY.push({ role:'user', content: text });
+  AI_HISTORY.push({ role:'user', parts:[{ text }] });
 
   const loadingEl = addAiMessage('bot loading', 'بيفكر...');
   AI_BUSY = true;
   document.getElementById('ai-send').disabled = true;
 
   try{
-    const systemPrompt = `إنت مساعد ذكي جوه موقع "أطلس الباكدجات السياحية". عندك بيانات كاملة عن كل الدول والمدن المتاحة في الأطلس (المطارات، الوصف، ليه الناس بتزورها، أهم حاجة تتعملها، وأهم المعالم). لما حد يسأل عن مدينة أو دولة موجودة في الأطلس، اعتمد على البيانات دي بالأساس. لو السؤال محتاج معلومات مش موجودة في البيانات (زي الأسعار الحالية، الطقس، تأشيرات، أو دول مش موجودة في الأطلس)، جاوب من معرفتك العامة ووضح إن دي معلومة عامة مش من بيانات الأطلس. رد دايمًا بالعربية، بأسلوب ودود ومباشر ومختصر قدر الإمكان إلا لو المستخدم طلب تفاصيل أكتر.
+    const systemPrompt = `اسمك "عِمران"، إنت مساعد ذكي جوه موقع "أطلس الباكدجات السياحية". لو حد سألك مين إنت، قوله إنك عِمران. عندك بيانات كاملة عن كل الدول والمدن المتاحة في الأطلس (المطارات، الوصف، ليه الناس بتزورها، أهم حاجة تتعملها، وأهم المعالم). لما حد يسأل عن مدينة أو دولة موجودة في الأطلس، اعتمد على البيانات دي بالأساس. لو السؤال محتاج معلومات مش موجودة في البيانات (زي الأسعار الحالية، الطقس، تأشيرات، أو دول مش موجودة في الأطلس)، جاوب من معرفتك العامة ووضح إن دي معلومة عامة مش من بيانات الأطلس. رد دايمًا بالعربية، بأسلوب ودود ومباشر ومختصر قدر الإمكان إلا لو المستخدم طلب تفاصيل أكتر.
 
 بيانات الأطلس:
 ${buildAtlasContext()}`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent`;
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': AI_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
+        'x-goog-api-key': AI_API_KEY
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: AI_HISTORY
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: AI_HISTORY
       })
     });
 
@@ -3542,13 +3543,13 @@ ${buildAtlasContext()}`;
       return;
     }
 
-    const replyText = (data.content || [])
-      .map(block => block.type === 'text' ? block.text : '')
-      .filter(Boolean)
-      .join('\n');
+    const candidate = (data.candidates && data.candidates[0]) || null;
+    const replyText = candidate && candidate.content && candidate.content.parts
+      ? candidate.content.parts.map(p => p.text || '').filter(Boolean).join('\n')
+      : '';
 
     addAiMessage('bot', replyText || '(مفيش رد)');
-    AI_HISTORY.push({ role:'assistant', content: replyText });
+    AI_HISTORY.push({ role:'model', parts:[{ text: replyText }] });
 
   }catch(err){
     loadingEl.remove();
@@ -3580,24 +3581,24 @@ ${buildAtlasContext()}`;
 
   <!-- AI Assistant Widget -->
   <button id="ai-fab" onclick="openAiChat()">
-    <span class="dot"></span> 🤖 مساعد الأطلس الذكي
+    <span class="dot"></span> 🤖 اسأل عِمران
   </button>
 
   <div id="ai-overlay" onclick="if(event.target===this) closeAiChat()">
     <div id="ai-modal">
       <div id="ai-header">
         <div>
-          <div class="ai-title">🤖 مساعد الأطلس الذكي</div>
-          <div class="ai-sub">بيجاوب من بيانات الأطلس + معرفته العامة (Claude)</div>
+          <div class="ai-title">🤖 اسأل عِمران</div>
+          <div class="ai-sub">مساعدك الذكي لأي سؤال عن الأطلس (Gemini - مجاني)</div>
         </div>
         <button id="ai-close" onclick="closeAiChat()">×</button>
       </div>
 
       <div id="ai-key-row">
-        <input id="ai-key-input" type="password" placeholder="الصق مفتاح Claude API هنا (sk-ant-...)" autocomplete="off" />
+        <input id="ai-key-input" type="password" placeholder="الصق مفتاح Gemini API هنا (AIza...)" autocomplete="off" />
         <button onclick="saveAiKey()">حفظ</button>
       </div>
-      <div id="ai-key-status">المفتاح بيتخزن في المتصفح بس لحظة استخدام الصفحة، ومش بيتبعت لأي حد غير Anthropic مباشرة.</div>
+      <div id="ai-key-status">المفتاح بيتخزن في الذاكرة بس لحظة استخدام الصفحة، ومش بيتبعت لأي حد غير Google مباشرة. اعمل مفتاحك المجاني من aistudio.google.com/apikey</div>
 
       <div id="ai-messages"></div>
 
