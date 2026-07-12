@@ -1582,6 +1582,32 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .ccc-name{ font-size:12px; font-weight:700; color:var(--ink); }
   .ccc-empty{ font-size:11.5px; color:var(--muted); line-height:1.6; }
 
+  /* landmark compass icon: clickable affordance for the double-click "isolate" feature */
+  .landmark-compass-dot{ cursor:pointer; }
+
+  /* quick "paste a hotel" box shown at the bottom of every city-center hotel list */
+  .ccc-quickadd{
+    display:flex; gap:6px; margin-top:8px; padding-top:8px; border-top:1px dashed var(--border);
+  }
+  .ccc-quickadd input{
+    flex:1; min-width:0; font-family:inherit; font-size:11px;
+    border:1px solid var(--border); border-radius:8px; padding:5px 8px; background:var(--surface); color:var(--ink);
+  }
+  .ccc-quickadd input:last-of-type{ flex:0 0 90px; }
+  .ccc-quickadd button{
+    border:none; background:var(--primary); color:#fff; font-weight:700; font-size:11px;
+    padding:0 10px; border-radius:8px; cursor:pointer; white-space:nowrap;
+  }
+
+  /* "suggest hotels near this landmark" links shown in its popup after isolating it */
+  .lm-suggest{ margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); display:flex; flex-direction:column; gap:5px; }
+  .lm-suggest-title{ font-size:11px; font-weight:700; color:var(--muted); }
+  .lm-suggest a{
+    font-size:11.5px; font-weight:700; color:#2b6cff; text-decoration:none;
+    background:var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:5px 9px; text-align:center;
+  }
+  .lm-suggest a:hover{ background:#2b6cff; color:#fff; border-color:#2b6cff; }
+
   /* ---------- EXPANDABLE TICKET DETAILS (why to visit / must-do / landmarks) ---------- */
   .ticket .details-toggle{
     display:inline-flex; align-items:center; gap:5px;
@@ -2051,8 +2077,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .hcard-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:6px; }
   .hcard-area{ font-size:11.8px; color:var(--muted); display:inline-flex; align-items:center; gap:4px; }
   .hcard-stars{ font-size:11px; color:#f59e0b; letter-spacing:1px; white-space:nowrap; }
+  .hcard-check{ width:17px; height:17px; margin-inline-end:6px; vertical-align:middle; cursor:pointer; accent-color:var(--primary); }
+  .hcard-isolate-banner{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:var(--bg-2); border:1px dashed var(--primary); border-radius:12px;
+    padding:8px 12px; font-size:12.5px; color:var(--ink-3); margin-bottom:12px;
+  }
+  .hcard-isolate-banner button{
+    border:none; background:var(--primary); color:#fff; font-weight:700; font-size:11.5px;
+    padding:5px 12px; border-radius:999px; cursor:pointer;
+  }
   .hcard-actions{ flex-shrink:0; display:flex; flex-direction:column; gap:6px; }
-  .hcard-copy, .hcard-search, .hcard-remove{
+  .hcard-copy, .hcard-search, .hcard-remove, .hcard-edit{
     width:32px; height:32px; border-radius:10px; border:1px solid var(--border);
     background:var(--surface); color:var(--muted); display:flex; align-items:center; justify-content:center;
     cursor:pointer; font-size:14px; transition:all .2s ease; flex-shrink:0; padding:0;
@@ -2061,6 +2097,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .hcard-copy.copied{ background:#16a34a !important; color:#fff !important; border-color:#16a34a !important; }
   .hcard-search:hover{ background:#0369a1; color:#fff; border-color:#0369a1; }
   .hcard-remove:hover{ background:#dc2626; color:#fff; border-color:#dc2626; }
+  .hcard-edit:hover{ background:#e08a00; color:#fff; border-color:#e08a00; }
   .hcard-link{
     font-size:11.5px; color:var(--primary); text-decoration:none; font-weight:700;
     display:inline-flex; align-items:center; gap:3px;
@@ -2751,6 +2788,9 @@ function flyToCity(mapKey, lat, lng){
     const key = markerKey(mapKey, lat, lng);
     const entry = cityMarkers[key];
     if(entry) setTimeout(()=> entry.openPopup(), 500);
+    const found = findRegionAndCountry(mapKey);
+    const cityObj = found && (found.country.cities || []).find(c => c.lat === lat && c.lng === lng);
+    if(cityObj) setTimeout(()=> showLandmarksOnly(map, mapKey, lat, lng, cityObj.name), 600);
   }, 250);
 }
 
@@ -2776,35 +2816,112 @@ function parseDistanceKm(distanceStr){
   return null;
 }
 
-function formatKmLabel(km){
+function formatKmLabel(km, lang){
+  if(lang === 'en'){
+    if(km <= 0) return '📍 Inside city center';
+    if(km < 1) return `📏 ${Math.round(km * 1000)} m`;
+    return `📏 ${Number.isInteger(km) ? km : km.toFixed(1)} km`;
+  }
   if(km <= 0) return '📍 داخل السيتي سنتر';
   if(km < 1) return `📏 ${Math.round(km * 1000)} م`;
   return `📏 ${Number.isInteger(km) ? km : km.toFixed(1)} كم`;
 }
 
+// ---------- Istanbul-only: European vs Asian side tagging ----------
+// Istanbul is the one city on the atlas split by the Bosphorus, so hotels/landmarks there
+// get an extra "(European side)"/"(Asian side)" tag. Detected from known area/landmark
+// keywords; falls back to nothing if we can't tell.
+const ISTANBUL_ASIA_KEYWORDS = ['üsküdar','uskudar','أوسكودار','اوسكودار','kadıköy','kadikoy','كاديكوي','قاضي كوي','maltepe','مالتيبي','pendik','بنديك','ataşehir','atasehir','أتاشهير','كارتال','kartal','بيكوز','beykoz'];
+const ISTANBUL_EUROPE_KEYWORDS = ['تقسيم','taksim','سلطان أحمد','السلطان أحمد','sultanahmet','beyoğlu','beyoglu','بيوغلو','شيشلي','sisli','şişli','فاتح','fatih','باكيركوي','bakırköy','bakirkoy','بشكتاش','beşiktaş','besiktas','آيا صوفيا','ayasofya','hagia sophia','المسجد الأزرق','blue mosque','توبكابي','topkapi','البازار الكبير','grand bazaar','kapalıçarşı'];
+function istanbulSideOf(cityName, text){
+  if(cityName !== 'اسطنبول' || !text) return null;
+  const t = String(text).toLowerCase();
+  if(ISTANBUL_ASIA_KEYWORDS.some(k => t.includes(k.toLowerCase()))) return 'asia';
+  if(ISTANBUL_EUROPE_KEYWORDS.some(k => t.includes(k.toLowerCase()))) return 'europe';
+  return null;
+}
+function istanbulSideTag(cityName, text, lang){
+  const side = istanbulSideOf(cityName, text);
+  if(!side) return '';
+  if(lang === 'en') return side === 'asia' ? ' (Asian side)' : ' (European side)';
+  return side === 'asia' ? ' (الجانب الآسيوي)' : ' (الجانب الأوروبي)';
+}
+
+// ---------- Editable hotel data: lets a person tweak a built-in or custom hotel's fields
+// (link, rating, distance…) without losing the rest of the atlas's data. Overrides are kept
+// separately, keyed by city + the hotel's position in its (base+custom) list, so renaming a
+// hotel while editing it doesn't orphan the override. ----------
+let EDITED_HOTELS_RICH = {};
+function hotelEditKey(city, idx){ return city + '||' + idx; }
+function applyHotelEdit(city, hotel, idx){
+  const edit = EDITED_HOTELS_RICH[hotelEditKey(city, idx)];
+  return edit ? Object.assign({}, hotel, edit) : hotel;
+}
+// Single source of truth for "all hotels registered for this city" (base + custom, edits applied).
+// Used everywhere city-center distances/markers are computed, so an edit or a new custom hotel
+// always shows up consistently in every view (modal list, city-center popup, side panel…).
+function getCityHotelsRich(cityName){
+  const rich = HOTELS_DATA_RICH[cityName] || [];
+  const custom = (typeof CUSTOM_HOTELS_RICH !== 'undefined' && CUSTOM_HOTELS_RICH[cityName]) || [];
+  return [...rich, ...custom].map((h,i) => applyHotelEdit(cityName, h, i));
+}
+
 // Gathers every hotel registered for this city (built-in + user-added) whose distance
 // can be parsed and falls within the given radius, sorted nearest-first.
 function getHotelsNearCenter(cityName, radiusKm){
-  const rich = HOTELS_DATA_RICH[cityName] || [];
-  const custom = (typeof CUSTOM_HOTELS_RICH !== 'undefined' && CUSTOM_HOTELS_RICH[cityName]) || [];
-  const all = [...rich, ...custom];
-  return all
+  return getCityHotelsRich(cityName)
     .map(h => ({ name:h.name, km:parseDistanceKm(h.distance) }))
     .filter(h => h.km !== null && h.km <= radiusKm)
     .sort((a,b) => a.km - b.km);
 }
 
-function buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, fnName){
+function buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, fnName, ctx, lang){
   fnName = fnName || 'selectHotelOnCityCenterMap';
+  ctx = ctx || 'ccc';
+  lang = lang || 'ar';
   const hotels = getHotelsNearCenter(cityName, radiusKm);
-  if(!hotels.length){
-    return `<div class="ccc-empty">لا توجد فنادق مسجلة بمسافة معروفة ضمن ${radiusKm} كم من السيتي سنتر.</div>`;
+  const listHtml = hotels.length
+    ? `<div class="ccc-hotel-list">${hotels.map(h => `
+      <div class="ccc-hotel" style="cursor:pointer" onclick="${fnName}('${mapKey}', '${h.name.replace(/'/g,"\\'")}')" title="${lang==='en' ? 'Tap to show the distance from this hotel to each landmark' : 'اضغط لعرض المسافة بين الفندق والمعالم'}">
+        <span class="ccc-dist">${formatKmLabel(h.km, lang)}</span>
+        <span class="ccc-name">🏨 ${escapeHtml(h.name)}${istanbulSideTag(cityName, h.name, lang)}</span>
+      </div>`).join('')}</div>`
+    : `<div class="ccc-empty">${lang==='en' ? `No hotels with a known distance are registered within ${radiusKm} km of the city center.` : `لا توجد فنادق مسجلة بمسافة معروفة ضمن ${radiusKm} كم من السيتي سنتر.`}</div>`;
+
+  // Quick "paste a hotel name/address" box — adds it as a custom hotel for this city so it's
+  // then treated exactly like the rest (shows up here, in the hotels modal, gets a distance
+  // marker on the map if a distance is given).
+  const qid = `${ctx}-${mapKey}`;
+  const quickAddHtml = `
+    <div class="ccc-quickadd">
+      <input type="text" id="qa-name-${qid}" placeholder="${lang==='en' ? 'Paste a hotel name / address' : 'الصق اسم أو عنوان الفندق'}" />
+      <input type="text" id="qa-dist-${qid}" placeholder="${lang==='en' ? 'Distance (e.g. 500 m)' : 'المسافة (مثلاً 500 م)'}" />
+      <button type="button" onclick="quickAddCityCenterHotel('${mapKey}', '${cityName.replace(/'/g,"\\'")}', '${qid}', '${fnName}')">${lang==='en' ? '➕ Add' : '➕ إضافة'}</button>
+    </div>`;
+
+  return listHtml + quickAddHtml;
+}
+
+// Adds a hotel pasted directly into a city-center list (popup or side panel) as a custom
+// hotel for that city, then refreshes whichever view triggered it.
+function quickAddCityCenterHotel(mapKey, cityName, qid, fnName){
+  const nameEl = document.getElementById(`qa-name-${qid}`);
+  const distEl = document.getElementById(`qa-dist-${qid}`);
+  const name = (nameEl && nameEl.value || '').trim();
+  if(!name){ if(nameEl) nameEl.focus(); return; }
+  const distance = (distEl && distEl.value || '').trim() || null;
+
+  if(!CUSTOM_HOTELS_RICH[cityName]) CUSTOM_HOTELS_RICH[cityName] = [];
+  CUSTOM_HOTELS_RICH[cityName].push({ name, area:null, stars:null, booking:null, agoda:null, trip:null, reviews:null, distance, link:null });
+
+  if(qid.startsWith('ccsp-')){
+    const state = overviewCityHighlight;
+    if(state) showCityCenterHighlightOnOverview(state.centerLat, state.centerLng, cityName, mapKey);
+  } else {
+    const state = centerHighlights[mapKey];
+    const map = countryMapInstances[mapKey];
+    if(map && state) showCityCenterHighlight(map, mapKey, state.centerLat, state.centerLng, cityName);
   }
-  return `<div class="ccc-hotel-list">${hotels.map(h => `
-    <div class="ccc-hotel" style="cursor:pointer" onclick="${fnName}('${mapKey}', '${h.name.replace(/'/g,"\\'")}')" title="اضغط لعرض المسافة بين الفندق والمعالم">
-      <span class="ccc-dist">${formatKmLabel(h.km)}</span>
-      <span class="ccc-name">🏨 ${escapeHtml(h.name)}</span>
-    </div>`).join('')}</div>`;
 }
 
 // Deterministic string hash → used to scatter markers around the city center in a stable
@@ -2882,7 +2999,7 @@ function showCityCenterHighlight(map, mapKey, lat, lng, cityName){
     }).addTo(map);
     const icon = L.divIcon({
       className:'hotel-map-marker-wrap',
-      html:`<div class="hotel-map-label">${escapeHtml(h.name)}<span class="hotel-map-dist">${formatKmLabel(h.km)}</span></div><div class="hotel-map-dot"></div>`,
+      html:`<div class="hotel-map-label">${escapeHtml(h.name)}${istanbulSideTag(cityName, h.name)}<span class="hotel-map-dist">${formatKmLabel(h.km)}</span></div><div class="hotel-map-dot"></div>`,
       iconSize:[1,1], iconAnchor:[0,0]
     });
     const marker = L.marker([hlat, hlng], { icon, interactive:false }).addTo(map);
@@ -2891,6 +3008,8 @@ function showCityCenterHighlight(map, mapKey, lat, lng, cityName){
   });
 
   // ---- Mark nearby landmarks too, each with a small "atlas" pin + its name above it.
+  // Double-clicking a landmark's compass icon isolates it: hides the other landmarks and
+  // shows every registered hotel's distance from that one landmark only.
   const cityObj = findCityObj(mapKey, cityName);
   const landmarkMarkers = [];
   (cityObj && cityObj.landmarks || []).forEach(lmName => {
@@ -2898,10 +3017,12 @@ function showCityCenterHighlight(map, mapKey, lat, lng, cityName){
     const [llat, llng] = jitterPoint(lat, lng, lmKm, cityName + '|lm|' + lmName);
     const icon = L.divIcon({
       className:'landmark-map-marker-wrap',
-      html:`<div class="landmark-map-label">🧭 ${escapeHtml(lmName)}</div><div class="landmark-map-dot">🧭</div>`,
+      html:`<div class="landmark-map-label">🧭 ${escapeHtml(lmName)}${istanbulSideTag(cityName, lmName)}</div><div class="landmark-map-dot landmark-compass-dot" title="دبل كليك: مسافات الفنادق من هذا المعلم فقط">🧭</div>`,
       iconSize:[1,1], iconAnchor:[0,0]
     });
-    const marker = L.marker([llat, llng], { icon, interactive:false }).addTo(map);
+    const marker = L.marker([llat, llng], { icon, interactive:true }).addTo(map);
+    marker._lmName = lmName;
+    marker.on('dblclick', ()=> selectLandmarkAlone(mapKey, cityName, lmName, llat, llng, lat, lng));
     landmarkMarkers.push(marker);
   });
 
@@ -2936,6 +3057,120 @@ function clearHotelLandmarkLines(state, map){
   state.hlLabels = [];
 }
 
+// ---------- Landmark isolation: double-clicking a landmark's 🧭 compass icon shows every
+// registered hotel's distance FROM that landmark alone, and hides the other landmarks.
+// Also offers a "suggest 5★ hotels near here" popup with ready-made search links, since real
+// (non-atlas) hotel inventory isn't something this page has offline data for. ----------
+function suggestLinksHtml(cityName, lmName, lang){
+  const enQuery = `5 star hotels near ${lmName} ${cityName}`;
+  const gmaps = 'https://www.google.com/maps/search/' + encodeURIComponent(enQuery);
+  const booking = 'https://www.booking.com/searchresults.html?ss=' + encodeURIComponent(`${lmName}, ${cityName}`) + '&nflt=class%3D5';
+  if(lang === 'en'){
+    return `<div class="lm-suggest">
+      <div class="lm-suggest-title">🔍 Suggest 5★ hotels near here (outside the atlas)</div>
+      <a href="${gmaps}" target="_blank" rel="noopener">📍 Google Maps</a>
+      <a href="${booking}" target="_blank" rel="noopener">🏨 Booking.com</a>
+    </div>`;
+  }
+  return `<div class="lm-suggest">
+    <div class="lm-suggest-title">🔍 اقتراح فنادق 5 نجوم قريبة (من خارج الأطلس)</div>
+    <a href="${gmaps}" target="_blank" rel="noopener">📍 خرائط جوجل</a>
+    <a href="${booking}" target="_blank" rel="noopener">🏨 Booking.com</a>
+  </div>`;
+}
+
+function isolateLandmarkAndShowHotelDistances(map, state, cityName, lmName, llat, llng, lat, lng, lang){
+  if(!map || !state) return;
+  clearHotelLandmarkLines(state, map);
+  let selectedMarker = null;
+  (state.landmarkMarkers || []).forEach(m => {
+    if(m._lmName === lmName) selectedMarker = m;
+    else if(map.hasLayer(m)) map.removeLayer(m);
+  });
+
+  const hotels = getHotelsNearCenter(cityName, CITY_CENTER_RADIUS_KM);
+  const hlLines = [], hlLabels = [];
+  hotels.forEach(h => {
+    const placeKm = Math.max(h.km, 0.15);
+    const [hlat, hlng] = jitterPoint(lat, lng, placeKm, cityName + '|hotel|' + h.name);
+    const distKm = haversineKm(llat, llng, hlat, hlng);
+    const line = L.polyline([[llat, llng], [hlat, hlng]], {
+      color:'#e08a00', weight:2, opacity:.85, dashArray:'6 6', interactive:false
+    }).addTo(map);
+    const midLat = (llat + hlat) / 2, midLng = (llng + hlng) / 2;
+    const icon = L.divIcon({
+      className:'hl-dist-marker-wrap',
+      html:`<div class="hl-dist-label">${formatKmLabel(distKm, lang)}</div>`,
+      iconSize:[1,1], iconAnchor:[0,0]
+    });
+    const label = L.marker([midLat, midLng], { icon, interactive:false }).addTo(map);
+    hlLines.push(line);
+    hlLabels.push(label);
+  });
+  state.hlLines = hlLines;
+  state.hlLabels = hlLabels;
+
+  if(selectedMarker){
+    const title = lang === 'en' ? '🧭' : '🧭';
+    selectedMarker.bindPopup(
+      `<div class="ccc-popup"><div class="ccc-title">${title} ${escapeHtml(lmName)}${istanbulSideTag(cityName, lmName, lang)}</div>${suggestLinksHtml(cityName, lmName, lang)}</div>`,
+      { maxWidth:260, className:'ccc-leaflet-popup' }
+    ).openPopup();
+  }
+  map.panTo([llat, llng]);
+}
+
+function selectLandmarkAlone(mapKey, cityName, lmName, llat, llng, lat, lng){
+  const map = countryMapInstances[mapKey];
+  const state = centerHighlights[mapKey] || landmarkOnlyState[mapKey];
+  isolateLandmarkAndShowHotelDistances(map, state, cityName, lmName, llat, llng, lat, lng, 'ar');
+  if(overviewCityHighlight && overviewCityHighlight.mapKey === mapKey && centerHighlights[mapKey]){
+    selectLandmarkAloneOnOverview(mapKey, cityName, lmName, llat, llng, lat, lng);
+  }
+}
+
+function selectLandmarkAloneOnOverview(mapKey, cityName, lmName, llat, llng, lat, lng){
+  isolateLandmarkAndShowHotelDistances(overviewMap, overviewCityHighlight, cityName, lmName, llat, llng, lat, lng, 'en');
+}
+
+// ---------- "Landmarks only" mode: just picking a city card (no full city-center circle)
+// still drops a 🧭 pin for each of its landmarks on the map, with no hotels/distances shown —
+// exactly what's needed before the person double-clicks a compass to isolate it. ----------
+const landmarkOnlyState = {}; // mapKey -> { landmarkMarkers, hlLines, hlLabels, cityName }
+
+function clearLandmarksOnly(mapKey){
+  const map = countryMapInstances[mapKey];
+  const st = landmarkOnlyState[mapKey];
+  if(!map || !st) return;
+  (st.landmarkMarkers || []).forEach(m => { if(map.hasLayer(m)) map.removeLayer(m); });
+  (st.hlLines || []).forEach(l => { if(map.hasLayer(l)) map.removeLayer(l); });
+  (st.hlLabels || []).forEach(m => { if(map.hasLayer(m)) map.removeLayer(m); });
+  delete landmarkOnlyState[mapKey];
+}
+
+function showLandmarksOnly(map, mapKey, lat, lng, cityName){
+  // If the full city-center view is already open for this map, it already draws landmarks —
+  // don't draw a second, competing set of pins on top of it.
+  if(centerHighlights[mapKey]) return;
+  clearLandmarksOnly(mapKey);
+  const cityObj = findCityObj(mapKey, cityName);
+  const landmarkMarkers = [];
+  (cityObj && cityObj.landmarks || []).forEach(lmName => {
+    const lmKm = 0.35 + (hashStr(cityName + '|lm-r|' + lmName) % 55) / 100;
+    const [llat, llng] = jitterPoint(lat, lng, lmKm, cityName + '|lm|' + lmName);
+    const icon = L.divIcon({
+      className:'landmark-map-marker-wrap',
+      html:`<div class="landmark-map-label">🧭 ${escapeHtml(lmName)}${istanbulSideTag(cityName, lmName)}</div><div class="landmark-map-dot landmark-compass-dot" title="دبل كليك: مسافات الفنادق من هذا المعلم فقط">🧭</div>`,
+      iconSize:[1,1], iconAnchor:[0,0]
+    });
+    const marker = L.marker([llat, llng], { icon, interactive:true }).addTo(map);
+    marker._lmName = lmName;
+    marker.on('dblclick', ()=> selectLandmarkAlone(mapKey, cityName, lmName, llat, llng, lat, lng));
+    landmarkMarkers.push(marker);
+  });
+  landmarkOnlyState[mapKey] = { landmarkMarkers, hlLines:[], hlLabels:[], cityName };
+}
+
 // Draws a blue dashed line (with the distance labeled above it) from the chosen hotel
 // to every landmark pin already plotted around the city center. Triggered when the
 // person clicks a hotel's name (in the city-center popup list or the hotels modal).
@@ -2947,9 +3182,7 @@ function selectHotelOnCityCenterMap(mapKey, hotelName){
 
   const cityName = state.cityName;
   const lat = state.centerLat, lng = state.centerLng;
-  const rich = HOTELS_DATA_RICH[cityName] || [];
-  const custom = (typeof CUSTOM_HOTELS_RICH !== 'undefined' && CUSTOM_HOTELS_RICH[cityName]) || [];
-  const hotelObj = [...rich, ...custom].find(h => h.name === hotelName);
+  const hotelObj = getCityHotelsRich(cityName).find(h => h.name === hotelName);
   const km = hotelObj ? parseDistanceKm(hotelObj.distance) : null;
   const placeKm = Math.max(km || 0.15, 0.15);
   const [hlat, hlng] = jitterPoint(lat, lng, placeKm, cityName + '|hotel|' + hotelName);
@@ -3010,7 +3243,7 @@ function showCityCenterHighlightOnOverview(lat, lng, cityName, mapKey){
   const dot = L.circleMarker([lat,lng], {
     radius:7, color:'#fff', weight:2, fillColor:'#e11d2e', fillOpacity:1,
     pane:'markerPane', interactive:true
-  }).addTo(map).bindPopup(`<div class="ccc-popup"><div class="ccc-title">🎯 وسط المدينة${cityName ? ' — ' + escapeHtml(cityName) : ''}</div></div>`, { maxWidth:220, className:'ccc-leaflet-popup' });
+  }).addTo(map).bindPopup(`<div class="ccc-popup"><div class="ccc-title">🎯 City Center${cityName ? ' — ' + escapeHtml(cityName) : ''}</div></div>`, { maxWidth:220, className:'ccc-leaflet-popup' });
   const ring = L.circleMarker([lat,lng], {
     radius:7, color:'#e11d2e', weight:2, fillColor:'#e11d2e', fillOpacity:.3, opacity:.6,
     pane:'markerPane', interactive:false
@@ -3027,7 +3260,7 @@ function showCityCenterHighlightOnOverview(lat, lng, cityName, mapKey){
     }).addTo(map);
     const icon = L.divIcon({
       className:'hotel-map-marker-wrap',
-      html:`<div class="hotel-map-label">${escapeHtml(h.name)}<span class="hotel-map-dist">${formatKmLabel(h.km)}</span></div><div class="hotel-map-dot"></div>`,
+      html:`<div class="hotel-map-label">${escapeHtml(h.name)}${istanbulSideTag(cityName, h.name, 'en')}<span class="hotel-map-dist">${formatKmLabel(h.km, 'en')}</span></div><div class="hotel-map-dot"></div>`,
       iconSize:[1,1], iconAnchor:[0,0]
     });
     const marker = L.marker([hlat, hlng], { icon, interactive:false }).addTo(map);
@@ -3042,10 +3275,12 @@ function showCityCenterHighlightOnOverview(lat, lng, cityName, mapKey){
     const [llat, llng] = jitterPoint(lat, lng, lmKm, cityName + '|lm|' + lmName);
     const icon = L.divIcon({
       className:'landmark-map-marker-wrap',
-      html:`<div class="landmark-map-label">🧭 ${escapeHtml(lmName)}</div><div class="landmark-map-dot">🧭</div>`,
+      html:`<div class="landmark-map-label">🧭 ${escapeHtml(lmName)}${istanbulSideTag(cityName, lmName, 'en')}</div><div class="landmark-map-dot landmark-compass-dot" title="Double-click: show hotel distances from this landmark only">🧭</div>`,
       iconSize:[1,1], iconAnchor:[0,0]
     });
-    const marker = L.marker([llat, llng], { icon, interactive:false }).addTo(map);
+    const marker = L.marker([llat, llng], { icon, interactive:true }).addTo(map);
+    marker._lmName = lmName;
+    marker.on('dblclick', ()=> selectLandmarkAloneOnOverview(mapKey, cityName, lmName, llat, llng, lat, lng));
     landmarkMarkers.push(marker);
   });
 
@@ -3071,11 +3306,11 @@ function renderCityCenterSidePanel(cityName, radiusKm, mapKey){
   if(!panel) return;
   panel.innerHTML = `
     <div class="ccsp-header">
-      <div class="ccsp-title">🎯 وسط المدينة${cityName ? ' — ' + escapeHtml(cityName) : ''}</div>
-      <button type="button" class="ccsp-close" onclick="closeCityCenterSidePanel()" aria-label="إغلاق">×</button>
+      <div class="ccsp-title">🎯 City Center${cityName ? ' — ' + escapeHtml(cityName) : ''}</div>
+      <button type="button" class="ccsp-close" onclick="closeCityCenterSidePanel()" aria-label="Close">×</button>
     </div>
-    <div class="ccsp-radius">دائرة نصف قطرها ${radiusKm} كم تغطي السيتي سنتر بالكامل</div>
-    ${buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, 'selectHotelOnOverviewMap')}
+    <div class="ccsp-radius">${radiusKm} km radius circle covering the whole city center</div>
+    ${buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, 'selectHotelOnOverviewMap', 'ccsp', 'en')}
   `;
   panel.classList.add('show');
 }
@@ -3093,9 +3328,7 @@ function selectHotelOnOverviewMap(mapKey, hotelName){
 
   const cityName = state.cityName;
   const lat = state.centerLat, lng = state.centerLng;
-  const rich = HOTELS_DATA_RICH[cityName] || [];
-  const custom = (typeof CUSTOM_HOTELS_RICH !== 'undefined' && CUSTOM_HOTELS_RICH[cityName]) || [];
-  const hotelObj = [...rich, ...custom].find(h => h.name === hotelName);
+  const hotelObj = getCityHotelsRich(cityName).find(h => h.name === hotelName);
   const km = hotelObj ? parseDistanceKm(hotelObj.distance) : null;
   const placeKm = Math.max(km || 0.15, 0.15);
   const [hlat, hlng] = jitterPoint(lat, lng, placeKm, cityName + '|hotel|' + hotelName);
@@ -3113,7 +3346,7 @@ function selectHotelOnOverviewMap(mapKey, hotelName){
     const midLat = (hlat + llat) / 2, midLng = (hlng + llng) / 2;
     const icon = L.divIcon({
       className:'hl-dist-marker-wrap',
-      html:`<div class="hl-dist-label">${formatKmLabel(distKm)}</div>`,
+      html:`<div class="hl-dist-label">${formatKmLabel(distKm, 'en')}</div>`,
       iconSize:[1,1], iconAnchor:[0,0]
     });
     const label = L.marker([midLat, midLng], { icon, interactive:false }).addTo(map);
@@ -3170,12 +3403,16 @@ const MapTypeControl = L.Control.extend({
     this._streetLayer = streetLayer;
     this._satLayer = satLayer;
     this._labelsLayer = labelsLayer;
+    this._lang = (opts && opts.lang) || 'ar';
   },
   onAdd: function(map){
     const container = L.DomUtil.create('div', 'map-type-toggle');
+    const t = this._lang === 'en'
+      ? { map:'Map', sat:'Satellite' }
+      : { map:'خريطة', sat:'قمر صناعي' };
     container.innerHTML = `
-      <button type="button" class="map-type-btn active" data-type="street"><span class="mtb-icon">🗺️</span> خريطة</button>
-      <button type="button" class="map-type-btn" data-type="sat"><span class="mtb-icon">🛰️</span> قمر صناعي</button>
+      <button type="button" class="map-type-btn active" data-type="street"><span class="mtb-icon">🗺️</span> ${t.map}</button>
+      <button type="button" class="map-type-btn" data-type="sat"><span class="mtb-icon">🛰️</span> ${t.sat}</button>
     `;
     L.DomEvent.disableClickPropagation(container);
     L.DomEvent.disableScrollPropagation(container);
@@ -3201,7 +3438,7 @@ const MapTypeControl = L.Control.extend({
   }
 });
 
-function addBaseLayers(map){
+function addBaseLayers(map, lang){
   const streetLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
     attribution:'Tiles &copy; Esri',
     maxZoom:18
@@ -3217,13 +3454,13 @@ function addBaseLayers(map){
     pane:'overlayPane'
   });
   streetLayer.addTo(map);
-  new MapTypeControl(streetLayer, satLayer, labelsLayer, { position:'topright' }).addTo(map);
+  new MapTypeControl(streetLayer, satLayer, labelsLayer, { position:'topright', lang: lang || 'ar' }).addTo(map);
   return { streetLayer, satLayer, labelsLayer };
 }
 
-// ---------- Leaflet: overview map ----------
+// ---------- Leaflet: overview map (kept in English throughout — see map-type toggle & popups) ----------
 const overviewMap = L.map('map-overview', { scrollWheelZoom:false }).setView([20,40], 2);
-addBaseLayers(overviewMap);
+addBaseLayers(overviewMap, 'en');
 
 const allBounds = [];
 REGIONS.forEach(region=>{
@@ -3232,7 +3469,7 @@ REGIONS.forEach(region=>{
       const marker = L.circleMarker([city.lat, city.lng], {
         radius:7, weight:2, color:'#fff', fillColor:region.accent, fillOpacity:1
       }).addTo(overviewMap);
-      marker.bindPopup(`<b>${c.flag} ${city.name}</b><br>${city.desc}<br><a class="popup-link" href="${gmapUrl(city.lat,city.lng)}" target="_blank" rel="noopener">فتح في خرائط جوجل ↗</a>`);
+      marker.bindPopup(`<b>${c.flag} ${city.name}${city.en ? ' — ' + city.en : ''}</b><br><a class="popup-link" href="${gmapUrl(city.lat,city.lng)}" target="_blank" rel="noopener">Open in Google Maps ↗</a>`);
       allBounds.push([city.lat, city.lng]);
     });
   });
@@ -4662,6 +4899,7 @@ function hotelPriceTag(h){
 }
 
 function openHotelsModal(cityName, flag, country, mapKey, lat, lng){
+  isolatedHotelIdx = null;
   currentHotelsCity = cityName;
   currentHotelsFlag = flag || '🏨';
   currentHotelsMapKey = mapKey || null;
@@ -4759,18 +4997,37 @@ function searchHotelGoogle(idx){
   window.open(url, '_blank', 'noopener');
 }
 
+// Checking a hotel's box isolates it: only its card stays visible in the list, and its
+// distances to every landmark are drawn on the (still-open) map behind the modal.
+let isolatedHotelIdx = null;
+
+function isolateHotelInList(i, checked){
+  isolatedHotelIdx = checked ? i : null;
+  renderHotelsList();
+  if(checked){
+    const h = __richHotelsCurrent[i];
+    if(h && h.name && currentHotelsMapKey && currentHotelsLat !== null && currentHotelsLng !== null){
+      flyToCityCenter(currentHotelsMapKey, currentHotelsLat, currentHotelsLng, currentHotelsCity);
+      setTimeout(()=> selectHotelOnCityCenterMap(currentHotelsMapKey, h.name), 1150);
+    }
+  }
+}
+
 function renderRichHotelCard(h, i, isCustom, customIdx){
+  const sideTag = istanbulSideTag(currentHotelsCity, h.name) || istanbulSideTag(currentHotelsCity, h.area);
   return `<div class="hcard">
     <div class="hcard-top">
       <div class="hcard-titlewrap">
+        <input type="checkbox" class="hcard-check" title="اختر لعرض هذا الفندق فقط ومسافاته للمعالم" ${isolatedHotelIdx===i?'checked':''} onchange="isolateHotelInList(${i}, this.checked)" />
         <span class="hcard-rank">${i+1}</span><span class="hcard-name" style="cursor:pointer" title="اضغط لعرض الفندق والمعالم على الخريطة" onclick="focusHotelFromModal(${i})">🏨 ${escapeHtml(h.name)}</span>
         <div class="hcard-meta">
-          ${h.area ? `<span class="hcard-area">📍 ${escapeHtml(h.area)}</span>` : ''}
+          ${h.area ? `<span class="hcard-area">📍 ${escapeHtml(h.area)}${sideTag}</span>` : (sideTag ? `<span class="hcard-area">📍${sideTag}</span>` : '')}
           ${h.stars ? `<span class="hcard-stars">${starGlyphs(h.stars)}</span>` : ''}
           ${h.link ? `<a class="hcard-link" href="${escapeHtml(h.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 رابط الفندق</a>` : ''}
         </div>
       </div>
       <div class="hcard-actions">
+        <button class="hcard-edit" title="تعديل بيانات الفندق" onclick="showEditHotelForm(${i})">✏️</button>
         <button class="hcard-copy" title="نسخ اسم الفندق" onclick="copyHotelInfo(${i}, this)">📋</button>
         <button class="hcard-search" title="بحث عن الفندق على جوجل" onclick="searchHotelGoogle(${i})">🔍</button>
         ${isCustom ? `<button class="hcard-remove" title="حذف الفندق" onclick="removeCustomHotelRich(${customIdx})">🗑️</button>` : ''}
@@ -4788,6 +5045,57 @@ function renderRichHotelCard(h, i, isCustom, customIdx){
   </div>`;
 }
 
+// Replaces one hotel's card with an editable form pre-filled with its current data —
+// works for built-in atlas hotels as well as custom ones. Saved as an override so the
+// original atlas data stays intact underneath.
+function showEditHotelForm(i){
+  const h = __richHotelsCurrent[i];
+  const cards = document.querySelectorAll('#hotels-list .hcard');
+  const card = cards[i];
+  if(!h || !card) return;
+  const v = x => escapeHtml(x || '');
+  card.outerHTML = `
+    <div class="hotel-add-form hotel-add-form-rich" id="hotel-edit-form-${i}">
+      <input id="hef-name-${i}" type="text" placeholder="اسم الفندق *" value="${v(h.name)}" />
+      <input id="hef-area-${i}" type="text" placeholder="المنطقة" value="${v(h.area)}" />
+      <div class="haf-row">
+        <input id="hef-stars-${i}" type="number" min="1" max="5" placeholder="عدد النجوم" value="${v(h.stars)}" />
+        <input id="hef-reviews-${i}" type="text" placeholder="عدد التقييمات" value="${v(h.reviews)}" />
+      </div>
+      <div class="haf-row haf-row-3">
+        <input id="hef-booking-${i}" type="text" placeholder="Booking" value="${v(h.booking)}" />
+        <input id="hef-agoda-${i}" type="text" placeholder="Agoda" value="${v(h.agoda)}" />
+        <input id="hef-trip-${i}" type="text" placeholder="Tripadvisor" value="${v(h.trip)}" />
+      </div>
+      <input id="hef-distance-${i}" type="text" placeholder="المسافة عن السيتي سنتر" value="${v(h.distance)}" />
+      <input id="hef-link-${i}" type="url" placeholder="رابط الفندق" value="${v(h.link)}" />
+      <div class="haf-actions">
+        <button class="haf-save" onclick="saveHotelEdit(${i})">حفظ التعديل</button>
+        <button class="haf-cancel" onclick="renderHotelsList()">إلغاء</button>
+      </div>
+    </div>`;
+  const nameInput = document.getElementById(`hef-name-${i}`);
+  if(nameInput) nameInput.focus();
+}
+
+function saveHotelEdit(i){
+  const val = id => { const el = document.getElementById(id); return el ? (el.value || '').trim() : ''; };
+  const name = val(`hef-name-${i}`);
+  if(!name) return;
+  EDITED_HOTELS_RICH[hotelEditKey(currentHotelsCity, i)] = {
+    name,
+    area: val(`hef-area-${i}`) || null,
+    stars: val(`hef-stars-${i}`) ? parseInt(val(`hef-stars-${i}`), 10) : null,
+    booking: val(`hef-booking-${i}`) || null,
+    agoda: val(`hef-agoda-${i}`) || null,
+    trip: val(`hef-trip-${i}`) || null,
+    reviews: val(`hef-reviews-${i}`) || null,
+    distance: val(`hef-distance-${i}`) || null,
+    link: val(`hef-link-${i}`) || null,
+  };
+  renderHotelsList();
+}
+
 function renderHotelsList(){
   const list = document.getElementById('hotels-list');
   const cityCount = document.getElementById('hotels-city-count');
@@ -4795,19 +5103,26 @@ function renderHotelsList(){
 
   const baseRich = HOTELS_DATA_RICH[cityName] || [];
   const customRich = CUSTOM_HOTELS_RICH[cityName] || [];
-  const allRich = [...baseRich, ...customRich];
+  const allRich = [...baseRich, ...customRich].map((h,i)=> applyHotelEdit(cityName, h, i));
   __richHotelsCurrent = allRich;
 
+  const visibleIdxs = (isolatedHotelIdx !== null && isolatedHotelIdx < allRich.length)
+    ? [isolatedHotelIdx] : allRich.map((_,i)=>i);
+  const isolateBannerHtml = (isolatedHotelIdx !== null && isolatedHotelIdx < allRich.length)
+    ? `<div class="hcard-isolate-banner">🔎 بيتعرض فندق واحد فقط ومسافاته للمعالم — <button type="button" onclick="isolateHotelInList(null, false)">✕ عرض كل الفنادق</button></div>`
+    : '';
+
   const richHtml = allRich.length
-    ? `<div class="hcard-list">${allRich.map((h,i)=> renderRichHotelCard(h, i, i >= baseRich.length, i - baseRich.length)).join('')}</div>`
+    ? isolateBannerHtml + `<div class="hcard-list">${visibleIdxs.map(i=> renderRichHotelCard(allRich[i], i, i >= baseRich.length, i - baseRich.length)).join('')}</div>`
     : '';
 
   // Legacy simple-format hotels (older cities that only have the plain desc-based list).
   // If this city already has entries in the "rich" (Booking/Agoda/Tripadvisor) format,
   // skip the legacy base list entirely so the same hotel isn't shown twice in two styles —
   // always prefer the rich booking-style card design.
-  const baseHotels = allRich.length ? [] : (HOTELS_DATA[cityName] || []);
-  const customHotels = CUSTOM_HOTELS[cityName] || [];
+  const isolated = isolatedHotelIdx !== null && isolatedHotelIdx < allRich.length;
+  const baseHotels = (allRich.length || isolated) ? [] : (HOTELS_DATA[cityName] || []);
+  const customHotels = isolated ? [] : (CUSTOM_HOTELS[cityName] || []);
   const allLegacy = [...baseHotels, ...customHotels];
 
   const legacyHtml = allLegacy.length
@@ -4830,7 +5145,7 @@ function renderHotelsList(){
     ? '<p class="hotels-empty">لا توجد بيانات فنادق متوفرة لهذه المدينة حاليًا. أضف أول فندق بنفسك 👇</p>'
     : '';
 
-  const addCardHtml = `<div class="hotel-add-card" id="hotel-add-card" onclick="showAddHotelForm()">➕ إضافة فندق</div>`;
+  const addCardHtml = isolated ? '' : `<div class="hotel-add-card" id="hotel-add-card" onclick="showAddHotelForm()">➕ إضافة فندق</div>`;
 
   list.innerHTML = legacyHtml + richHtml + emptyHtml + addCardHtml;
 }
