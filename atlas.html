@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1575,12 +1577,23 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .ccc-radius{ font-size:10.5px; color:var(--muted); margin-bottom:8px; }
   .ccc-hotel-list{ display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; }
   .ccc-hotel{
-    display:flex; flex-direction:column; gap:1px;
     background:var(--bg-2); border:1px solid var(--border); border-radius:9px; padding:5px 9px;
   }
+  .ccc-hotel-row{ display:flex; align-items:center; gap:7px; }
+  .ccc-hotel-check{ width:15px; height:15px; flex-shrink:0; cursor:pointer; accent-color:var(--primary); }
+  .ccc-hotel-text{ display:flex; flex-direction:column; gap:1px; min-width:0; }
   .ccc-dist{ font-size:10px; font-weight:700; color:#e11d2e; }
   .ccc-name{ font-size:12px; font-weight:700; color:var(--ink); }
   .ccc-empty{ font-size:11.5px; color:var(--muted); line-height:1.6; }
+  .ccc-isolate-banner{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:var(--bg-2); border:1px dashed var(--primary); border-radius:9px;
+    padding:6px 9px; font-size:11px; color:var(--ink-3); margin-bottom:6px;
+  }
+  .ccc-isolate-banner button{
+    border:none; background:var(--primary); color:#fff; font-weight:700; font-size:10.5px;
+    padding:3px 9px; border-radius:999px; cursor:pointer;
+  }
 
   /* landmark compass icon: clickable affordance for the double-click "isolate" feature */
   .landmark-compass-dot{ cursor:pointer; }
@@ -2875,16 +2888,28 @@ function getHotelsNearCenter(cityName, radiusKm){
     .sort((a,b) => a.km - b.km);
 }
 
-function buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, fnName, ctx, lang){
+function buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, fnName, ctx, lang, isolatedHotel){
   fnName = fnName || 'selectHotelOnCityCenterMap';
   ctx = ctx || 'ccc';
   lang = lang || 'ar';
   const hotels = getHotelsNearCenter(cityName, radiusKm);
+  // If a checkbox is checked, keep only that one hotel's row in the list (its details) —
+  // the other hotels stay registered/sorted underneath, just hidden until "show all" is tapped.
+  const isolatedEntry = isolatedHotel ? hotels.find(h => h.name === isolatedHotel) : null;
+  const visibleHotels = isolatedEntry ? [isolatedEntry] : hotels;
+  const isolateBannerHtml = isolatedEntry
+    ? `<div class="ccc-isolate-banner">🔎 ${lang==='en' ? 'Showing one hotel only' : 'بيتعرض فندق واحد فقط'} — <button type="button" onclick="toggleCityCenterHotelIsolate('${mapKey}', '', false, '${ctx}')">${lang==='en' ? '✕ Show all' : '✕ عرض الكل'}</button></div>`
+    : '';
   const listHtml = hotels.length
-    ? `<div class="ccc-hotel-list">${hotels.map(h => `
-      <div class="ccc-hotel" style="cursor:pointer" onclick="${fnName}('${mapKey}', '${h.name.replace(/'/g,"\\'")}')" title="${lang==='en' ? 'Tap to show the distance from this hotel to each landmark' : 'اضغط لعرض المسافة بين الفندق والمعالم'}">
-        <span class="ccc-dist">${formatKmLabel(h.km, lang)}</span>
-        <span class="ccc-name">🏨 ${escapeHtml(h.name)}${istanbulSideTag(cityName, h.name, lang)}</span>
+    ? isolateBannerHtml + `<div class="ccc-hotel-list">${visibleHotels.map(h => `
+      <div class="ccc-hotel" title="${lang==='en' ? 'Tap to show the distance from this hotel to each landmark' : 'اضغط لعرض المسافة بين الفندق والمعالم'}">
+        <div class="ccc-hotel-row" style="cursor:pointer" onclick="${fnName}('${mapKey}', '${h.name.replace(/'/g,"\\'")}')">
+          <input type="checkbox" class="ccc-hotel-check" ${isolatedHotel===h.name?'checked':''} onclick="event.stopPropagation()" onchange="toggleCityCenterHotelIsolate('${mapKey}', '${h.name.replace(/'/g,"\\'")}', this.checked, '${ctx}')" title="${lang==='en' ? 'Show this hotel only, with its distances to each landmark' : 'اختر لعرض هذا الفندق بس ومسافاته للمعالم'}" />
+          <div class="ccc-hotel-text">
+            <span class="ccc-dist">${formatKmLabel(h.km, lang)}</span>
+            <span class="ccc-name">🏨 ${escapeHtml(h.name)}${istanbulSideTag(cityName, h.name, lang)}</span>
+          </div>
+        </div>
       </div>`).join('')}</div>`
     : `<div class="ccc-empty">${lang==='en' ? `No hotels with a known distance are registered within ${radiusKm} km of the city center.` : `لا توجد فنادق مسجلة بمسافة معروفة ضمن ${radiusKm} كم من السيتي سنتر.`}</div>`;
 
@@ -2900,6 +2925,41 @@ function buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, fnName, ctx, lang
     </div>`;
 
   return listHtml + quickAddHtml;
+}
+
+// Building block for the "ccc" popup (the one that opens from the red dot on the small
+// per-country map) so it can be rebuilt in place — with the isolation state preserved —
+// every time a checkbox is toggled, without recreating the circle/markers underneath it.
+function buildCityCenterPopupHtml(cityName, radiusKm, mapKey, isolatedHotel){
+  return `
+    <div class="ccc-popup">
+      <div class="ccc-title">🎯 وسط المدينة${cityName ? ' — ' + escapeHtml(cityName) : ''}</div>
+      <div class="ccc-radius">دائرة نصف قطرها ${radiusKm} كم تغطي السيتي سنتر بالكامل</div>
+      ${buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, undefined, undefined, undefined, isolatedHotel)}
+    </div>`;
+}
+
+// Checking a hotel's box in the CITY CENTER hotel list (popup on the small map, or the side
+// panel on the big overview map) isolates it there too: only its row stays visible, and its
+// distances to every landmark are drawn on that same map — same idea as the checkbox in the
+// full hotels modal, just scoped to whichever city-center view triggered it.
+function toggleCityCenterHotelIsolate(mapKey, hotelName, checked, ctx){
+  if(ctx === 'ccsp'){
+    const state = overviewCityHighlight;
+    if(!state) return;
+    state.isolatedHotel = checked ? hotelName : null;
+    if(checked) selectHotelOnOverviewMap(mapKey, hotelName);
+    else clearHotelLandmarkLines(state, overviewMap);
+    renderCityCenterSidePanel(state.cityName, CITY_CENTER_RADIUS_KM, mapKey);
+  } else {
+    const state = centerHighlights[mapKey];
+    const map = countryMapInstances[mapKey];
+    if(!state || !map) return;
+    state.isolatedHotel = checked ? hotelName : null;
+    if(checked) selectHotelOnCityCenterMap(mapKey, hotelName);
+    else clearHotelLandmarkLines(state, map);
+    if(state.dot) state.dot.setPopupContent(buildCityCenterPopupHtml(state.cityName, CITY_CENTER_RADIUS_KM, mapKey, state.isolatedHotel));
+  }
 }
 
 // Adds a hotel pasted directly into a city-center list (popup or side panel) as a custom
@@ -2969,12 +3029,7 @@ function showCityCenterHighlight(map, mapKey, lat, lng, cityName){
     interactive:false
   }).addTo(map);
 
-  const popupHtml = `
-    <div class="ccc-popup">
-      <div class="ccc-title">🎯 وسط المدينة${cityName ? ' — ' + escapeHtml(cityName) : ''}</div>
-      <div class="ccc-radius">دائرة نصف قطرها ${radiusKm} كم تغطي السيتي سنتر بالكامل</div>
-      ${buildCityCenterHotelsHtml(cityName, radiusKm, mapKey)}
-    </div>`;
+  const popupHtml = buildCityCenterPopupHtml(cityName, radiusKm, mapKey, null);
 
   const dot = L.circleMarker([lat,lng], {
     radius:7, color:'#fff', weight:2, fillColor:'#e11d2e', fillOpacity:1,
@@ -3028,7 +3083,7 @@ function showCityCenterHighlight(map, mapKey, lat, lng, cityName){
 
   const startTime = Date.now();
   const state = { dot, ring, circle, raf:null, hotelMarkers, hotelLines, landmarkMarkers,
-    hlLines:[], hlLabels:[], cityName, centerLat:lat, centerLng:lng };
+    hlLines:[], hlLabels:[], cityName, centerLat:lat, centerLng:lng, isolatedHotel:null };
   function animate(){
     const t = ((Date.now() - startTime) % 1600) / 1600;
     ring.setRadius(7 + t*20);
@@ -3286,7 +3341,7 @@ function showCityCenterHighlightOnOverview(lat, lng, cityName, mapKey){
 
   const startTime = Date.now();
   const state = { dot, ring, circle, raf:null, hotelMarkers, hotelLines, landmarkMarkers,
-    hlLines:[], hlLabels:[], cityName, centerLat:lat, centerLng:lng, mapKey };
+    hlLines:[], hlLabels:[], cityName, centerLat:lat, centerLng:lng, mapKey, isolatedHotel:null };
   function animate(){
     const t = ((Date.now() - startTime) % 1600) / 1600;
     ring.setRadius(7 + t*20);
@@ -3304,13 +3359,14 @@ function showCityCenterHighlightOnOverview(lat, lng, cityName, mapKey){
 function renderCityCenterSidePanel(cityName, radiusKm, mapKey){
   const panel = document.getElementById('citycenter-side-panel');
   if(!panel) return;
+  const isolatedHotel = overviewCityHighlight ? overviewCityHighlight.isolatedHotel : null;
   panel.innerHTML = `
     <div class="ccsp-header">
       <div class="ccsp-title">🎯 City Center${cityName ? ' — ' + escapeHtml(cityName) : ''}</div>
       <button type="button" class="ccsp-close" onclick="closeCityCenterSidePanel()" aria-label="Close">×</button>
     </div>
     <div class="ccsp-radius">${radiusKm} km radius circle covering the whole city center</div>
-    ${buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, 'selectHotelOnOverviewMap', 'ccsp', 'en')}
+    ${buildCityCenterHotelsHtml(cityName, radiusKm, mapKey, 'selectHotelOnOverviewMap', 'ccsp', 'en', isolatedHotel)}
   `;
   panel.classList.add('show');
 }
