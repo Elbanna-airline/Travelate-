@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1381,9 +1379,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
     height:260px;
     border-radius:16px;
     border:1px solid var(--border);
-    margin-bottom:24px;
+    margin-bottom:10px;
     box-shadow:var(--shadow-md);
   }
+
+  .map-reset-btn{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; margin-bottom:24px; padding:8px 14px;
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    color:var(--ink-3); font-family:inherit; font-size:12.5px; font-weight:700;
+    cursor:pointer; transition:all .2s ease;
+  }
+  .map-reset-btn:hover{ background:var(--bg-2); border-color:var(--primary); color:var(--primary); }
+  .map-reset-btn-overview{ margin:10px auto 24px; max-width:320px; }
 
   /* ---------- CARD GRID ---------- */
   .grid{
@@ -2183,6 +2191,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div class="citycenter-side-panel" id="citycenter-side-panel"></div>
     <div class="legend" id="legend"></div>
   </div>
+  <button type="button" class="map-reset-btn map-reset-btn-overview" onclick="resetOverviewMap()">↺ رجّع الخريطة لوضعها الطبيعي</button>
 
   <nav class="region-nav">
     <ul id="nav-list"><li class="nav-indicator" id="nav-indicator" aria-hidden="true"></li></ul>
@@ -2689,6 +2698,7 @@ REGIONS.forEach(region=>{
           </div>
         </div>
         <div class="country-map" id="map-${key}"></div>
+        <button type="button" class="map-reset-btn" onclick="resetCountryMap('${key}')">↺ رجّع الخريطة لوضعها الطبيعي</button>
         <div class="grid">${cardsHtml}</div>
       </div>
     `;
@@ -3008,9 +3018,13 @@ function findCityObj(mapKey, cityName){
   return (found.country.cities || []).find(c => c.name === cityName) || null;
 }
 
-function showCityCenterHighlight(map, mapKey, lat, lng, cityName){
+// Removes every layer the city-center highlight (circle, pulsing dot, hotel/landmark
+// markers, distance lines) drew on a given country map, and forgets its state entirely —
+// used both when opening a *different* city center on the same map, and by the reset button.
+function clearCityCenterHighlightState(mapKey){
+  const map = countryMapInstances[mapKey];
   const prev = centerHighlights[mapKey];
-  if(prev){
+  if(map && prev){
     if(prev.raf) cancelAnimationFrame(prev.raf);
     if(prev.dot && map.hasLayer(prev.dot)) map.removeLayer(prev.dot);
     if(prev.ring && map.hasLayer(prev.ring)) map.removeLayer(prev.ring);
@@ -3021,6 +3035,11 @@ function showCityCenterHighlight(map, mapKey, lat, lng, cityName){
     (prev.hlLines || []).forEach(l => { if(map.hasLayer(l)) map.removeLayer(l); });
     (prev.hlLabels || []).forEach(m => { if(map.hasLayer(m)) map.removeLayer(m); });
   }
+  delete centerHighlights[mapKey];
+}
+
+function showCityCenterHighlight(map, mapKey, lat, lng, cityName){
+  clearCityCenterHighlightState(mapKey);
 
   const radiusKm = CITY_CENTER_RADIUS_KM;
   const circle = L.circle([lat,lng], {
@@ -3273,7 +3292,9 @@ function selectHotelOnCityCenterMap(mapKey, hotelName){
 // (even from a totally different country) always wipes the previous one first.
 let overviewCityHighlight = null;
 
-function showCityCenterHighlightOnOverview(lat, lng, cityName, mapKey){
+// Same idea as clearCityCenterHighlightState, but for the big overview map's single
+// active highlight (overviewCityHighlight is a singleton, not keyed by mapKey).
+function clearOverviewCityHighlight(){
   const map = overviewMap;
   const prev = overviewCityHighlight;
   if(prev){
@@ -3287,6 +3308,12 @@ function showCityCenterHighlightOnOverview(lat, lng, cityName, mapKey){
     (prev.hlLines || []).forEach(l => { if(map.hasLayer(l)) map.removeLayer(l); });
     (prev.hlLabels || []).forEach(m => { if(map.hasLayer(m)) map.removeLayer(m); });
   }
+  overviewCityHighlight = null;
+}
+
+function showCityCenterHighlightOnOverview(lat, lng, cityName, mapKey){
+  const map = overviewMap;
+  clearOverviewCityHighlight();
 
   const radiusKm = CITY_CENTER_RADIUS_KM;
   const circle = L.circle([lat,lng], {
@@ -3533,6 +3560,14 @@ REGIONS.forEach(region=>{
 if(allBounds.length){ overviewMap.fitBounds(allBounds, {padding:[30,30]}); }
 const overviewInitialBounds = allBounds.slice();
 
+// Reset button under the big overview map: clears any city-center highlight, closes the
+// side panel, and reframes the map back on every city — exactly how it looked on first load.
+function resetOverviewMap(){
+  clearOverviewCityHighlight();
+  closeCityCenterSidePanel();
+  if(overviewInitialBounds.length) overviewMap.fitBounds(overviewInitialBounds, {padding:[30,30]});
+}
+
 // ---------- Trip route line on the overview map (bold red line, like Google's route line) ----------
 // NOTE: this function only *builds* the route layer — it does NOT touch the map's
 // view or add the layer to the map. The map only updates when the person explicitly
@@ -3721,6 +3756,22 @@ function initCountryMap(region, country, idx){
   });
   if(bounds.length){ map.fitBounds(bounds, {padding:[28,28]}); }
   countryMapInstances[key] = map;
+}
+
+// Reset button under each small country map: clears any city-center highlight and any
+// "landmarks only" pins left on it, and reframes the map back on all of that country's cities —
+// exactly how it looked right after it first loaded.
+function resetCountryMap(mapKey){
+  const map = countryMapInstances[mapKey];
+  if(!map) return;
+  clearCityCenterHighlightState(mapKey);
+  clearLandmarksOnly(mapKey);
+  const found = findRegionAndCountry(mapKey);
+  if(found){
+    const bounds = (found.country.cities || []).map(city => [city.lat, city.lng]);
+    if(bounds.length) map.fitBounds(bounds, {padding:[28,28]});
+    else map.setView(found.region.center, found.region.zoom);
+  }
 }
 
 const observer = new IntersectionObserver((entries)=>{
