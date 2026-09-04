@@ -1792,7 +1792,7 @@ async function generate(){
       if(showLabels){
         if(leg.isReturn) label="العودة";
         else if(idx===0&&isRoundTrip&&!isMultiCity) label="الذهاب";
-        else if(isMultiCity) label=`المحطة ${idx+1}`;
+        else if(isMultiCity) label=`الرحلة ${idx+1}`;
         else label="الذهاب";
       }
       if(label){
