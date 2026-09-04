@@ -16,17 +16,19 @@ html {
 
 :root{
   --red:#dc2626;--red-dark:#b91c1c;--blue:#2a4a7f;--blue-mid:#3f6498;
-  --green:#16a34a;--gray:#64748b;--border:#1e293b;--surface:#080d18;
+  --green:#16a34a;--gray:#94a3b8;--border:#1e293b;--surface:#080d18;
   --surface2:#0f1929;--surface3:#162236;--white:#f0f4ff;
-  --yellow:#fbbf24;--accent:#7db9e8;
+  --yellow:#fbbf24;--accent:#7db9e8;--gold:#d4af74;
+  --accent-soft-bg:rgba(63,100,152,.16);--accent-soft-border:rgba(125,185,232,.35);--accent-soft-text:#8fc2ee;
   --radius:14px;--radius-sm:10px;
 }
 
 html.light-mode {
   --red:#dc2626;--red-dark:#b91c1c;--blue:#2a4a7f;--blue-mid:#3f6498;
-  --green:#16a34a;--gray:#65676b;--border:#cbd5e1;--surface:#f8fafc;
+  --green:#16a34a;--gray:#57606f;--border:#cbd5e1;--surface:#f8fafc;
   --surface2:#ffffff;--surface3:#f1f5f9;--white:#0f172a;
-  --yellow:#d97706;--accent:#1d4ed8;
+  --yellow:#d97706;--accent:#1d4ed8;--gold:#7a5a1f;
+  --accent-soft-bg:rgba(29,78,216,.08);--accent-soft-border:rgba(29,78,216,.22);--accent-soft-text:#1d4ed8;
 }
 
 .theme-toggle-btn {
@@ -44,12 +46,6 @@ html.light-mode input,html.light-mode select,html.light-mode textarea { color: #
 html.light-mode input:focus,html.light-mode select:focus,html.light-mode textarea:focus { border-color: #1d4ed8;background: #fff;box-shadow: 0 0 0 3px rgba(29,78,216,.12); }
 html.light-mode input::placeholder,html.light-mode textarea::placeholder { color: #b0b3b8; }
 html.light-mode select option { background: #fff; color: #1c1e21; }
-html.light-mode .btn-copy { background: #e4e6eb; color: #1c1e21; border-color: #ccd0d5; }
-html.light-mode .btn-copy:hover { background: #d8dadf; }
-html.light-mode .btn-rules { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
-html.light-mode .btn-rules:hover { background: #bfdbfe; }
-html.light-mode .btn-reset { background: #f0f2f5; color: #65676b; border-color: #dce0e8; }
-html.light-mode .btn-undo { background: #f1f5f9; color: #1d4ed8; border-color: #bfdbfe; }
 html.light-mode .output { background: #fff; border-color: #dce0e8; }
 html.light-mode .item { color: #444950; }
 html.light-mode .title { color: #1c1e21; }
@@ -59,14 +55,12 @@ html.light-mode .leg-title { color: #1c1e21; }
 html.light-mode .layover { background: #fff5f5; border-color: #ffd0d0; }
 html.light-mode .hotel-section { background: #f7f8fc; border-color: #dce0e8; }
 html.light-mode .room-section { background: #fff; border-color: #e4e6eb; }
-html.light-mode .add-btn { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
 html.light-mode .add-btn.green { background: #e6f9ee; color: #16a34a; border-color: #bbf7d0; }
 html.light-mode .modal-box,html.light-mode .gds-modal-box,html.light-mode .airport-modal-box { background: #fff; border-color: #dce0e8; color: #1c1e21; }
 html.light-mode .modal-box h3,html.light-mode .gds-modal-box h3,html.light-mode .airport-modal-box h3 { color: #1d4ed8; }
 html.light-mode .modal-box ol { color: #444950; }
 html.light-mode .modal-close { background: #f0f2f5; color: #65676b; border-color: #dce0e8; }
 html.light-mode .modal-close:hover { background: #e4e6eb; color: #1c1e21; }
-html.light-mode .modal-copy-rules { color: #1d4ed8; border-color: #bfdbfe; }
 html.light-mode .toast { background: #fff; color: #1c1e21; border-color: #dce0e8; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
 html.light-mode .gds-drop-zone { border-color: #dce0e8; }
 html.light-mode .gds-drop-zone:hover,html.light-mode .gds-drop-zone.drag { border-color: #1d4ed8; background: rgba(29,78,216,.04); }
@@ -81,16 +75,15 @@ html.light-mode .footer-powered { color: #b0b3b8; }
 html.light-mode .brand-badge { background: rgba(29,78,216,0.07); border-color: rgba(29,78,216,.14); color: #65676b; }
 html.light-mode .section-label { color: #65676b; }
 html.light-mode .hint { color: #65676b; }
-html.light-mode .gds-cam-btn { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
 html.light-mode .img-paste-bar { background: rgba(255,255,255,.92); border-top-color: #dce0e8; }
 html.light-mode .img-paste-btn-cancel { color: #65676b; border-color: #dce0e8; }
 html.light-mode .img-paste-btn-cancel:hover { background: #f0f2f5; }
 
 /* Currency selector */
 .currency-select-wrap{display:inline-flex;align-items:center;gap:6px;margin-right:8px;}
-.currency-badge{padding:3px 10px;border-radius:999px;background:#0c1e3a;color:#60a5fa;border:1px solid #1d4ed855;font-size:12px;font-weight:700;font-family:'Cairo';cursor:pointer;transition:.15s;}
+.currency-badge{padding:3px 10px;border-radius:999px;background:#0c1e3a;color:#8fc2ee;border:1px solid #1d4ed855;font-size:12px;font-weight:700;font-family:'Cairo';cursor:pointer;transition:.15s;}
 .currency-badge:hover{background:#1e3a8a22;border-color:#1d4ed8;}
-.currency-badge.active{background:#1d4ed844;border-color:#3b82f6;color:#93c5fd;}
+.currency-badge.active{background:#1d4ed8;border-color:#1d4ed8;color:#ffffff;}
 
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Cairo',sans-serif;background:var(--surface);min-height:100vh;padding:0 0 40px;direction:rtl;color:var(--white);}
@@ -115,19 +108,15 @@ select option{background:var(--surface2);color:var(--white);}
 .row{display:flex;gap:10px;}.row>*{flex:1;}
 .section-divider{height:1px;background:var(--border);margin:24px 0;}
 .buttons{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;}
-.btn{flex:1;min-width:90px;padding:12px 8px;border:none;border-radius:var(--radius);font-weight:700;font-size:13px;cursor:pointer;transition:.15s;font-family:'Cairo';display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn{flex:1;min-width:90px;padding:12px 8px;border:none;border-radius:var(--radius);font-weight:700;font-size:13px;cursor:pointer;transition:.2s ease;font-family:'Cairo';display:flex;align-items:center;justify-content:center;gap:6px;}
 .btn:active{transform:scale(.97);}
-.btn-create{background:var(--red);color:#fff;box-shadow:0 4px 16px rgba(225,29,72,.25);}
-.btn-create:hover{background:var(--red-dark);box-shadow:0 4px 20px rgba(225,29,72,.4);}
-.btn-copy{background:#1e293b;color:#e2e8f0;border:1.5px solid #334155;}
-.btn-copy:hover{background:#273449;}
-.btn-rules{background:#0c1e3a;color:#93c5fd;border:1.5px solid #1d4ed855;}
-.btn-rules:hover{background:#1e3a8a22;border-color:#1d4ed8;}
-.btn-reset{background:var(--surface3);color:#64748b;border:1.5px solid #1e293b;flex:.5;}
-.btn-reset:hover{background:#1e293b;color:#94a3b8;}
-.btn-undo{background:var(--surface3);color:#38bdf8;border:1.5px solid #0ea5e922;flex:.5;}
-.btn-undo:hover:not(:disabled){background:#0c1e2e;}
-.btn-undo:disabled{opacity:.25;cursor:not-allowed;}
+.btn-create{background:linear-gradient(135deg,var(--blue-mid),#7a5a1f);color:#fff;box-shadow:0 4px 14px rgba(63,100,152,.22);}
+.btn-create:hover{box-shadow:0 6px 20px rgba(63,100,152,.32);filter:brightness(1.06);}
+.btn-copy,.btn-rules{background:var(--surface3);color:var(--white);border:1.5px solid var(--border);}
+.btn-copy:hover,.btn-rules:hover{border-color:var(--accent-soft-border);background:var(--surface2);}
+.btn-reset,.btn-undo{background:var(--surface3);color:var(--gray);border:1.5px solid var(--border);flex:.5;}
+.btn-reset:hover,.btn-undo:hover:not(:disabled){border-color:var(--accent-soft-border);color:var(--white);background:var(--surface2);}
+.btn-undo:disabled{opacity:.35;cursor:not-allowed;}
 .output{margin-top:20px;background:var(--surface);padding:22px;border-radius:var(--radius);border:1.5px solid var(--border);line-height:1.9;min-height:60px;transition: border-color 0.3s ease;}
 .item{display:flex;align-items:flex-start;gap:7px;font-size:14px;color:#94a3b8;padding:1px 0;}
 .title{font-weight:800;font-size:17px;text-align:center;margin-bottom:10px;color:var(--white);}
@@ -137,8 +126,8 @@ select option{background:var(--surface2);color:var(--white);}
 .leg-title{font-weight:700;color:#e2e8f0;font-size:14.5px;}
 .hotel-section{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:12px;position:relative;}
 .room-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-top:10px;position:relative;}
-.add-btn{display:inline-flex;align-items:center;gap:6px;background:#0c1e3a;color:#60a5fa;border:1px solid #1d4ed855;border-radius:var(--radius-sm);padding:8px 16px;font-family:'Cairo';font-weight:700;font-size:13px;cursor:pointer;margin-top:10px;transition:.2s;}
-.add-btn:hover{background:#1e3a8a22;border-color:#1d4ed8;}
+.add-btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft-bg);color:var(--accent-soft-text);border:1px solid var(--accent-soft-border);border-radius:var(--radius-sm);padding:8px 16px;font-family:'Cairo';font-weight:700;font-size:13px;cursor:pointer;margin-top:10px;transition:.2s;}
+.add-btn:hover{filter:brightness(1.1);}
 .add-btn.green{background:#0a1f0f;color:#4ade80;border-color:#16a34a44;}
 .add-btn.green:hover{background:#16a34a22;border-color:var(--green);}
 .remove-btn{position:absolute;top:10px;left:10px;background:transparent;color:#f87171;border:1px solid #3f101044;border-radius:7px;padding:3px 9px;font-family:'Cairo';font-weight:700;font-size:12px;cursor:pointer;transition:.2s;}
@@ -146,44 +135,103 @@ select option{background:var(--surface2);color:var(--white);}
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:11px 24px;border-radius:12px;font-weight:800;font-size:14px;display:none;background:#0f1929;color:#e2e8f0;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid #1e293b;z-index:999;}
 
 .gds-toolbar{display:flex;gap:8px;margin-bottom:6px;align-items:center;flex-wrap:wrap;}
-.gds-cam-btn{padding:7px 16px;border-radius:8px;font-family:'Cairo';font-weight:700;font-size:12px;cursor:pointer;border:1.5px solid #1d4ed855;background:#0c1e3a;color:#60a5fa;transition:.15s;display:flex;align-items:center;gap:6px;}
-.gds-cam-btn:hover{background:#1e3a8a22;border-color:#1d4ed8;}
+.gds-cam-btn{padding:7px 16px;border-radius:8px;font-family:'Cairo';font-weight:700;font-size:12px;cursor:pointer;border:1.5px solid var(--accent-soft-border);background:var(--accent-soft-bg);color:var(--accent-soft-text);transition:.2s;display:flex;align-items:center;gap:6px;}
+.gds-cam-btn:hover{filter:brightness(1.1);}
 
 .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
 .modal-overlay.show{display:flex;}
 .modal-box{background:var(--surface2);border:1px solid #1e293b;border-radius:16px;padding:28px;max-width:520px;width:90%;direction:rtl;max-height:90vh;overflow-y:auto;}
-.modal-box h3{color:#60a5fa;font-size:16px;margin-bottom:16px;font-weight:800;}
+.modal-box h3{color:var(--accent-soft-text);font-size:16px;margin-bottom:16px;font-weight:800;}
 .modal-box ol{padding-right:20px;color:#94a3b8;font-size:13.5px;line-height:2.4;}
 .modal-box ol li{margin-bottom:3px;}
 .modal-close{display:block;width:100%;margin-top:16px;padding:10px;background:var(--surface3);color:#64748b;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'Cairo';font-weight:700;font-size:14px;cursor:pointer;transition:.2s;}
 .modal-close:hover{background:#1e293b;color:var(--white);}
-.modal-copy-rules{display:block;width:100%;margin-top:8px;padding:10px;background:transparent;color:#60a5fa;border:1px solid #1d4ed855;border-radius:var(--radius-sm);font-family:'Cairo';font-weight:700;font-size:14px;cursor:pointer;transition:.2s;}
-.modal-copy-rules:hover{background:#1e3a8a22;}
+.modal-copy-rules{display:block;width:100%;margin-top:8px;padding:10px;background:transparent;color:var(--accent-soft-text);border:1px solid var(--accent-soft-border);border-radius:var(--radius-sm);font-family:'Cairo';font-weight:700;font-size:14px;cursor:pointer;transition:.2s;}
+.modal-copy-rules:hover{background:var(--accent-soft-bg);}
 .airport-modal-box{background:var(--surface2);border:1px solid #1d4ed844;border-radius:16px;padding:28px;max-width:420px;width:90%;direction:rtl;}
-.airport-modal-box h3{color:#60a5fa;font-size:16px;margin-bottom:8px;font-weight:800;}
-.airport-modal-box p{color:#64748b;font-size:13px;margin-bottom:16px;}
+.airport-modal-box h3{color:var(--accent-soft-text);font-size:16px;margin-bottom:8px;font-weight:800;}
+.airport-modal-box p{color:var(--gray);font-size:13px;margin-bottom:16px;}
 .airport-modal-box input{margin-bottom:10px;}
 .airport-modal-save{width:100%;padding:11px;background:var(--blue-mid);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Cairo';font-weight:700;font-size:14px;cursor:pointer;transition:.2s;}
 .airport-modal-save:hover{background:var(--blue);}
 .airport-modal-skip{width:100%;padding:9px;margin-top:6px;background:transparent;color:#475569;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'Cairo';font-weight:700;font-size:13px;cursor:pointer;}
 .airport-auto-fetch{font-size:11px;color:#38bdf8;margin-top:4px;min-height:14px;}
 
-/* LCC toggle (small round checkbox) */
-.lcc-toggle-wrap{display:flex;align-items:center;gap:8px;margin:8px 0 14px;}
-.lcc-toggle-wrap input[type=checkbox]{
-  appearance:none;-webkit-appearance:none;width:18px;height:18px;padding:0;min-width:18px;
-  border-radius:50%;border:2px solid var(--blue-mid);background:transparent;cursor:pointer;
-  position:relative;flex-shrink:0;transition:.15s;
+/* Premium toggle switch cards (LCC / Hotel-only) */
+.premium-toggle{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 16px;margin:10px 0;border-radius:14px;
+  background:linear-gradient(135deg, rgba(63,100,152,.07), rgba(212,175,116,.04));
+  border:1px solid var(--border);cursor:pointer;transition:.2s ease;
 }
-.lcc-toggle-wrap input[type=checkbox]:checked{background:var(--blue-mid);}
-.lcc-toggle-wrap input[type=checkbox]:checked::after{
-  content:"";position:absolute;top:3px;left:3px;width:8px;height:8px;border-radius:50%;background:#fff;
+.premium-toggle:hover{border-color:#3f6498aa;}
+.premium-toggle.active{
+  border-color:var(--gold);
+  background:linear-gradient(135deg, rgba(63,100,152,.18), rgba(212,175,116,.13));
+  box-shadow:0 0 0 1px rgba(212,175,116,.22), 0 6px 18px rgba(212,175,116,.10);
 }
-.lcc-toggle-wrap label{font-size:12.5px;font-weight:700;color:var(--white);cursor:pointer;}
-#lccFields{margin-top:4px;}
+.premium-toggle-info{display:flex;align-items:center;gap:11px;min-width:0;}
+.premium-toggle-icon{
+  width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  background:var(--surface3);font-size:16px;flex-shrink:0;transition:.2s ease;
+}
+.premium-toggle.active .premium-toggle-icon{
+  background:linear-gradient(135deg,#3f6498,#7a5a1f);box-shadow:0 2px 10px rgba(212,175,116,.35);
+}
+.premium-toggle-text{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.premium-toggle-title{font-size:13px;font-weight:800;color:var(--white);white-space:nowrap;}
+.premium-toggle-sub{font-size:10.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.premium-toggle-switch{
+  width:42px;height:24px;border-radius:999px;background:var(--surface3);border:1px solid var(--border);
+  position:relative;flex-shrink:0;transition:.2s ease;
+}
+.premium-toggle-switch::after{
+  content:"";position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;
+  background:#fff;transition:.25s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 3px rgba(0,0,0,.35);
+}
+.premium-toggle.active .premium-toggle-switch{background:linear-gradient(135deg,#3f6498,#7a5a1f);border-color:transparent;}
+.premium-toggle.active .premium-toggle-switch::after{right:20px;}
+.premium-toggle input[type=checkbox]{display:none;}
+#standardExtras{transition:.15s;}
+
+/* Multi-city LCC segments */
+.lcc-add-city-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  padding:10px;margin:2px 0 14px;border-radius:10px;
+  background:transparent;border:1.5px dashed var(--blue-mid);color:var(--blue-mid);
+  font-family:'Cairo';font-size:12.5px;font-weight:800;cursor:pointer;transition:.2s;
+}
+.lcc-add-city-btn:hover{background:rgba(63,100,152,.08);border-style:solid;}
+.lcc-segment-block{
+  position:relative;margin:0 0 14px;padding:14px 14px 4px;border-radius:12px;
+  background:var(--surface3);border:1px solid var(--border);border-right:3px solid var(--gold);
+}
+.lcc-segment-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.lcc-segment-badge{
+  font-family:'Space Grotesk',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.5px;
+  color:var(--gold);text-transform:uppercase;
+}
+.lcc-remove-btn{
+  width:24px;height:24px;border-radius:50%;border:none;background:transparent;color:var(--gray);
+  cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.lcc-remove-btn:hover{background:rgba(220,38,38,.12);color:#f87171;}
+
+/* Trip type selector (Jazeera-style: Oneway / Round trip / Multi-city) */
+.trip-type-selector{display:flex;gap:4px;background:var(--surface3);border:1px solid var(--border);border-radius:12px;padding:4px;margin:4px 0 16px;}
+.trip-type-btn{
+  flex:1;padding:9px 6px;border:none;background:transparent;border-radius:9px;
+  font-family:'Cairo';font-size:12px;font-weight:800;color:var(--gray);cursor:pointer;
+  transition:.2s ease;white-space:nowrap;
+}
+.trip-type-btn:hover:not(.active){color:var(--white);}
+.trip-type-btn.active{
+  background:linear-gradient(135deg,#3f6498,#7a5a1f);color:#fff;
+  box-shadow:0 2px 10px rgba(212,175,116,.25);
+}
 
 .gds-modal-box{background:var(--surface2);border:1px solid #1d4ed844;border-radius:16px;padding:28px;max-width:560px;width:95%;direction:rtl;}
-.gds-modal-box h3{color:#60a5fa;font-size:16px;margin-bottom:14px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.gds-modal-box h3{color:var(--accent-soft-text);font-size:16px;margin-bottom:14px;font-weight:800;display:flex;align-items:center;gap:8px;}
 .gds-drop-zone{border:2px dashed #1e293b;border-radius:12px;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:.2s;position:relative;overflow:hidden;margin-bottom:12px;}
 .gds-drop-zone:hover,.gds-drop-zone.drag{border-color:#1d4ed8;background:rgba(29,78,216,.04);}
 .gds-drop-zone img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;padding:8px;}
@@ -366,13 +414,14 @@ input, select, textarea {
   <div class="modal-box">
     <h3>✅ قوانين الحجوزات</h3>
     <ol>
-      <li>الحجز غير مسترجع.</li>
+      <li>الحجز غير قابل للاسترجاع.</li>
       <li>الحجز غير قابل للتعديل.</li>
-      <li>التواجد بالمطار قبل الرحلة 3 ساعات.</li>
-      <li>لابد أن يكون جواز السفر ساري 6 أشهر على الأقل من تاريخ رحلة العودة.</li>
-      <li>في حالة عدم اكتمال إجراءات البصمة البيومترية، برجاء الحضور للمطار قبل 4 ساعات على الأقل من وقت المغادرة لتجنب فقدان الرحلة.</li>
-      <li>في حالة السفر بالبطاقة المدنية، يرجى مراعاة الآتي لتجنب أي حظر بالمطار: أن يكون جواز السفر ساري "6 أشهر أو أقل من تاريخ العودة" وغير مفقود، أو تم سحبه.</li>
+      <li>التواجد بالمطار قبل الرحلة لمدة 3 ساعات، سواء برحلة الذهاب أو العودة.</li>
+      <li>لابد أن يكون تاريخ انتهاء جواز السفر أو البطاقة المدنية 6 أشهر على الأقل من تاريخ رحلة العودة.</li>
+      <li>في حالة عدم اكتمال إجراءات البصمة البيومترية، يرجى الحضور إلى المطار قبل 4 ساعات على الأقل من موعد المغادرة لتجنب فقدان الرحلة.</li>
+      <li>في حالة السفر بالبطاقة المدنية، يرجى مراعاة الآتي لتجنب أي حظر بالمطار: أن يكون جواز السفر ساريًا، وغير مفقود، أو تم سحبه.</li>
       <li>التأشيرة ومتطلبات السفر مسؤولية المسافر.</li>
+      <li>تخضع خدمة الأسرّة والطلبات الخاصة لمدى التوفر لدى الفندق عند تسجيل الوصول.</li>
     </ol>
     <button class="modal-copy-rules" onclick="copyRules()"><i class="fa-solid fa-copy"></i> نسخ القوانين</button>
     <button class="modal-close" onclick="document.getElementById('rulesModal').classList.remove('show')">إغلاق</button>
@@ -383,7 +432,7 @@ input, select, textarea {
 <div class="modal-overlay" id="airportModal">
   <div class="airport-modal-box">
     <h3>🛫 كود مطار</h3>
-    <p>الكود <strong id="unknownCode" style="color:#60a5fa;font-family:monospace;"></strong> ده اسمه مطار إيه؟</p>
+    <p>الكود <strong id="unknownCode" style="color:var(--accent-soft-text);font-family:monospace;"></strong> ده اسمه مطار إيه؟</p>
     <div class="airport-auto-fetch" id="airportAutoFetch"></div>
     <input id="airportNameInput" placeholder="مثال: مطار القاهرة الدولي" oninput="document.getElementById('airportSaveBtn').disabled=!this.value.trim()">
     <button class="airport-modal-save" id="airportSaveBtn" onclick="saveAirport()" disabled><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
@@ -395,7 +444,7 @@ input, select, textarea {
 <div class="modal-overlay" id="airlineModal">
   <div class="airport-modal-box">
     <h3>🛩 شركة طيران غير معروفة</h3>
-    <p>كود شركة الطيران <strong id="unknownAirlineCode" style="color:#60a5fa;font-family:monospace;"></strong> غير موجود في القاعدة. ما اسم شركة الطيران؟</p>
+    <p>كود شركة الطيران <strong id="unknownAirlineCode" style="color:var(--accent-soft-text);font-family:monospace;"></strong> غير موجود في القاعدة. ما اسم شركة الطيران؟</p>
     <input id="airlineNameInput" placeholder="مثال: طيران الجزيرة" oninput="document.getElementById('airlineSaveBtn').disabled=!this.value.trim()">
     <button class="airport-modal-save" id="airlineSaveBtn" onclick="saveAirlineName()" disabled><i class="fa-solid fa-floppy-disk"></i> حفظ وإضافة للقاعدة</button>
     <button class="airport-modal-skip" onclick="skipAirlineName()">تخطي</button>
@@ -406,7 +455,7 @@ input, select, textarea {
 <div class="modal-overlay" id="operatedByModal">
   <div class="airport-modal-box">
     <h3>✈️ رقم رحلة من 4 أرقام</h3>
-    <p>رقم الرحلة <strong id="operatedByFlightNo" style="color:#60a5fa;font-family:monospace;"></strong> يتكوّن من 4 أرقام. لو الرحلة يتم تشغيلها بواسطة شركة طيران أخرى اكتب اسمها، وإن كانت رحلة داخلية عادية اضغط تخطي.</p>
+    <p>رقم الرحلة <strong id="operatedByFlightNo" style="color:var(--accent-soft-text);font-family:monospace;"></strong> يتكوّن من 4 أرقام. لو الرحلة يتم تشغيلها بواسطة شركة طيران أخرى اكتب اسمها، وإن كانت رحلة داخلية عادية اضغط تخطي.</p>
     <input id="operatedByInput" placeholder="مثال: فلاي دبي" oninput="document.getElementById('operatedBySaveBtn').disabled=!this.value.trim()">
     <button class="airport-modal-save" id="operatedBySaveBtn" onclick="saveOperatedBy()" disabled><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
     <button class="airport-modal-skip" onclick="skipOperatedBy()">تخطي (Skip)</button>
@@ -463,18 +512,32 @@ input, select, textarea {
   <div class="section-label"><i class="fa-solid fa-location-dot"></i> الوجهة</div>
   <input id="dest" placeholder="مثال: إسطنبول (اختياري)" oninput="saveToStorage()">
 
-  <div class="lcc-toggle-wrap">
+  <label class="premium-toggle" id="hotelOnlyWrap" for="hotelOnlyToggle">
+    <div class="premium-toggle-info">
+      <div class="premium-toggle-icon">🏨</div>
+      <div class="premium-toggle-text">
+        <span class="premium-toggle-title">فندق فقط</span>
+        <span class="premium-toggle-sub">إخفاء كل بيانات الطيران</span>
+      </div>
+    </div>
     <input type="checkbox" id="hotelOnlyToggle" onchange="toggleHotelOnly()">
-    <label for="hotelOnlyToggle">🏨 فندق فقط — إخفاء بيانات الطيران</label>
-  </div>
+    <div class="premium-toggle-switch"></div>
+  </label>
 
   <div id="flightSection">
   <div class="section-label"><i class="fa-solid fa-paste"></i> بيانات الرحلة</div>
 
-  <div class="lcc-toggle-wrap">
+  <label class="premium-toggle" id="lccWrap" for="lccToggle">
+    <div class="premium-toggle-info">
+      <div class="premium-toggle-icon">💺</div>
+      <div class="premium-toggle-text">
+        <span class="premium-toggle-title">LCC Carrier</span>
+        <span class="premium-toggle-sub">شركة طيران منخفضة التكلفة — إدخال يدوي</span>
+      </div>
+    </div>
     <input type="checkbox" id="lccToggle" onchange="toggleLCC()">
-    <label for="lccToggle">LCC carrier — رحلة شركة طيران منخفضة التكلفة (إدخال يدوي)</label>
-  </div>
+    <div class="premium-toggle-switch"></div>
+  </label>
 
   <div class="textarea-wrapper" id="textareaWrapper">
     <textarea id="input" placeholder="ضع بيانات نظام الحجز هنا GDS Segments&#10;&#10;for direct flights ...&#10;1  KU 671 L 26JUN 5 KWIDXB DK2  0905 1205  26JUN  E  0 339 BM&#10;2  KU 674 T 30JUN 2 DXBKWI DK2  1855 1945  30JUN  E  0 338 M&#10;&#10;for transit flights ...&#10;1  KU 671 L 26JUN 5 KWIDXB DK2  0905 1205  26JUN  E  0 339 BM&#10;T  KU 674 T 30JUN 2 DXBKWI DK2  1855 1945  30JUN  E  0 338 M" oninput="saveToStorage()"></textarea>
@@ -498,6 +561,24 @@ input, select, textarea {
   <div id="lccFields" style="display:none;">
     <div class="section-label" style="margin-top:0;">اسم شركة الطيران</div>
     <input id="lccAirlineName" placeholder="مثال: فلاي دبي" oninput="saveToStorage()">
+
+    <div class="section-label">نوع الرحلة</div>
+    <div class="trip-type-selector" id="lccTripTypeSelector">
+      <button type="button" class="trip-type-btn" data-type="oneway" onclick="setLccTripType('oneway')">ذهاب فقط</button>
+      <button type="button" class="trip-type-btn active" data-type="roundtrip" onclick="setLccTripType('roundtrip')">ذهاب وعودة</button>
+      <button type="button" class="trip-type-btn" data-type="multicity" onclick="setLccTripType('multicity')">وجهات متعددة</button>
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="section-label">من مطار</div>
+        <input id="lccFrom" placeholder="مثال: مطار الكويت الدولي" oninput="saveToStorage()">
+      </div>
+      <div>
+        <div class="section-label">إلى مطار</div>
+        <input id="lccTo" placeholder="مثال: مطار دبي الدولي" oninput="saveToStorage()">
+      </div>
+    </div>
     <div class="row">
       <div>
         <div class="section-label" style="margin-top:0;">تاريخ رحلة الذهاب</div>
@@ -508,20 +589,42 @@ input, select, textarea {
         <input id="lccGoTime" placeholder="مثال: 09:05 ص" oninput="saveToStorage()">
       </div>
     </div>
-    <div class="row">
-      <div>
-        <div class="section-label">تاريخ رحلة العودة</div>
-        <input id="lccBackDate" placeholder="مثال: 30 يونيو 2026" oninput="saveToStorage()">
+
+    <div id="lccMultiCityBlock" style="display:none;">
+      <button type="button" class="lcc-add-city-btn" id="lccAddCityBtn" onclick="addLccSegment()">
+        <i class="fa-solid fa-plus"></i> إضافة وجهة أخرى
+      </button>
+      <div id="lccExtraSegments"></div>
+    </div>
+
+    <div id="lccReturnBlock">
+      <div class="row">
+        <div>
+          <div class="section-label">من مطار (العودة)</div>
+          <input id="lccBackFrom" placeholder="اتركه فارغًا = نفس آخر مطار وصلت له" oninput="saveToStorage()">
+        </div>
+        <div>
+          <div class="section-label">إلى مطار (العودة)</div>
+          <input id="lccBackTo" placeholder="اتركه فارغًا = نفس مطار المغادرة الأول" oninput="saveToStorage()">
+        </div>
       </div>
-      <div>
-        <div class="section-label">موعد إقلاع الطائرة بالعودة</div>
-        <input id="lccBackTime" placeholder="مثال: 18:55" oninput="saveToStorage()">
+      <div class="row">
+        <div>
+          <div class="section-label">تاريخ رحلة العودة</div>
+          <input id="lccBackDate" placeholder="مثال: 30 يونيو 2026" oninput="saveToStorage()">
+        </div>
+        <div>
+          <div class="section-label">موعد إقلاع الطائرة بالعودة</div>
+          <input id="lccBackTime" placeholder="مثال: 18:55" oninput="saveToStorage()">
+        </div>
       </div>
     </div>
+
     <div class="section-label">الوزن</div>
     <input id="lccWeight" placeholder="مثال: 20 كجم" oninput="saveToStorage()">
   </div>
 
+  <div id="standardExtras">
   <div class="row" style="margin-top:18px;">
     <div>
       <div class="section-label" style="margin-top:0;"><i class="fa-solid fa-star"></i> درجة الحجز — الذهاب</div>
@@ -555,6 +658,7 @@ input, select, textarea {
   <div class="row">
     <select id="backBags" onchange="saveToStorage()"><option value="1">1 حقيبة</option><option value="2">2 حقائب</option><option value="3">3 حقائب</option><option value="0">بدون حقائب شحن</option></select>
     <input id="backWeight" value="23" placeholder="الوزن كجم" oninput="saveToStorage()">
+  </div>
   </div>
   </div>
 
@@ -626,7 +730,78 @@ function toggleLCC(){
   let hint=document.getElementById("gdsHint");
   if(hint) hint.style.display=on?"none":"";
   document.getElementById("lccFields").style.display=on?"":"none";
+  let extras=document.getElementById("standardExtras");
+  if(extras) extras.style.display=on?"none":"";
+  let wrap=document.getElementById("lccWrap");
+  if(wrap) wrap.classList.toggle("active",on);
   saveToStorage();
+}
+
+/* ============================================================
+   LCC TRIP TYPE — Oneway / Round trip / Multi-city (Jazeera-style)
+============================================================ */
+let lccTripType="roundtrip";
+function setLccTripType(type){
+  lccTripType=type;
+  document.querySelectorAll("#lccTripTypeSelector .trip-type-btn").forEach(b=>{
+    b.classList.toggle("active",b.dataset.type===type);
+  });
+  let returnBlock=document.getElementById("lccReturnBlock");
+  let multiBlock=document.getElementById("lccMultiCityBlock");
+  if(returnBlock) returnBlock.style.display=type==="roundtrip"?"":"none";
+  if(multiBlock) multiBlock.style.display=type==="multicity"?"":"none";
+  saveToStorage();
+}
+
+/* ============================================================
+   MULTI-CITY LCC SEGMENTS — "+" adds another from/to airport
+   block, stacked right under the first destination
+============================================================ */
+let lccSegCounter=0;
+function addLccSegment(prefill){
+  lccSegCounter++;
+  const id=lccSegCounter;
+  const wrap=document.createElement("div");
+  wrap.className="lcc-segment-block";
+  wrap.id="lccSegBlock"+id;
+  wrap.innerHTML=`
+    <div class="lcc-segment-head">
+      <span class="lcc-segment-badge">وجهة إضافية</span>
+      <button type="button" class="lcc-remove-btn" onclick="removeLccSegment(${id})" title="حذف هذه الوجهة"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="row">
+      <div><div class="section-label" style="margin-top:0;">من مطار</div><input id="lccSeg${id}From" placeholder="مثال: مطار دبي الدولي" oninput="saveToStorage()"></div>
+      <div><div class="section-label" style="margin-top:0;">إلى مطار</div><input id="lccSeg${id}To" placeholder="مثال: مطار مسقط الدولي" oninput="saveToStorage()"></div>
+    </div>
+    <div class="row">
+      <div><div class="section-label">تاريخ الرحلة</div><input id="lccSeg${id}Date" placeholder="مثال: 27 يونيو 2026" oninput="saveToStorage()"></div>
+      <div><div class="section-label">موعد الإقلاع</div><input id="lccSeg${id}Time" placeholder="مثال: 14:20" oninput="saveToStorage()"></div>
+    </div>`;
+  document.getElementById("lccExtraSegments").appendChild(wrap);
+  if(prefill){
+    document.getElementById("lccSeg"+id+"From").value=prefill.from||"";
+    document.getElementById("lccSeg"+id+"To").value=prefill.to||"";
+    document.getElementById("lccSeg"+id+"Date").value=prefill.date||"";
+    document.getElementById("lccSeg"+id+"Time").value=prefill.time||"";
+  }
+  saveToStorage();
+}
+function removeLccSegment(id){
+  let el=document.getElementById("lccSegBlock"+id);
+  if(el) el.remove();
+  saveToStorage();
+}
+function getLccExtraSegments(){
+  let blocks=Array.from(document.querySelectorAll("#lccExtraSegments .lcc-segment-block"));
+  return blocks.map(el=>{
+    let id=el.id.replace("lccSegBlock","");
+    return{
+      from:document.getElementById("lccSeg"+id+"From")?.value.trim()||"",
+      to:document.getElementById("lccSeg"+id+"To")?.value.trim()||"",
+      date:document.getElementById("lccSeg"+id+"Date")?.value.trim()||"",
+      time:document.getElementById("lccSeg"+id+"Time")?.value.trim()||""
+    };
+  }).filter(s=>s.from||s.to||s.date||s.time);
 }
 
 /* ============================================================
@@ -635,6 +810,8 @@ function toggleLCC(){
 function toggleHotelOnly(){
   let on=document.getElementById("hotelOnlyToggle").checked;
   document.getElementById("flightSection").style.display=on?"none":"";
+  let wrap=document.getElementById("hotelOnlyWrap");
+  if(wrap) wrap.classList.toggle("active",on);
   saveToStorage();
 }
 
@@ -670,11 +847,17 @@ function saveToStorage(){
       lccToggle:document.getElementById("lccToggle")?.checked||false,
       hotelOnlyToggle:document.getElementById("hotelOnlyToggle")?.checked||false,
       lccAirlineName:document.getElementById("lccAirlineName")?.value||"",
+      lccFrom:document.getElementById("lccFrom")?.value||"",
+      lccTo:document.getElementById("lccTo")?.value||"",
       lccGoDate:document.getElementById("lccGoDate")?.value||"",
       lccGoTime:document.getElementById("lccGoTime")?.value||"",
       lccBackDate:document.getElementById("lccBackDate")?.value||"",
       lccBackTime:document.getElementById("lccBackTime")?.value||"",
-      lccWeight:document.getElementById("lccWeight")?.value||""
+      lccBackFrom:document.getElementById("lccBackFrom")?.value||"",
+      lccBackTo:document.getElementById("lccBackTo")?.value||"",
+      lccWeight:document.getElementById("lccWeight")?.value||"",
+      lccExtraSegments:(typeof getLccExtraSegments==="function")?getLccExtraSegments():[],
+      lccTripType:lccTripType
     };
     localStorage.setItem("travelate-formdata", JSON.stringify(data));
   }catch(e){}
@@ -696,11 +879,19 @@ function loadFromStorage(){
     if(data.cabinClassBack) document.getElementById("cabinClassBack").value=data.cabinClassBack;
     if(data.currency) setCurrency(data.currency, data.currencyName||data.currency);
     if(data.lccAirlineName) document.getElementById("lccAirlineName").value=data.lccAirlineName;
+    if(data.lccFrom) document.getElementById("lccFrom").value=data.lccFrom;
+    if(data.lccTo) document.getElementById("lccTo").value=data.lccTo;
     if(data.lccGoDate) document.getElementById("lccGoDate").value=data.lccGoDate;
     if(data.lccGoTime) document.getElementById("lccGoTime").value=data.lccGoTime;
     if(data.lccBackDate) document.getElementById("lccBackDate").value=data.lccBackDate;
     if(data.lccBackTime) document.getElementById("lccBackTime").value=data.lccBackTime;
+    if(data.lccBackFrom) document.getElementById("lccBackFrom").value=data.lccBackFrom;
+    if(data.lccBackTo) document.getElementById("lccBackTo").value=data.lccBackTo;
     if(data.lccWeight) document.getElementById("lccWeight").value=data.lccWeight;
+    if(data.lccExtraSegments&&data.lccExtraSegments.length){
+      data.lccExtraSegments.forEach(seg=>addLccSegment(seg));
+    }
+    setLccTripType(data.lccTripType||"roundtrip");
     if(data.lccToggle){document.getElementById("lccToggle").checked=true;toggleLCC();}
     if(data.hotelOnlyToggle){document.getElementById("hotelOnlyToggle").checked=true;toggleHotelOnly();}
     let ta=document.getElementById("input");
@@ -1004,7 +1195,7 @@ document.addEventListener("keydown",function(e){
 });
 
 function copyRules(){
-  let t=`✅ قوانين الحجوزات:\n\n1- الحجز غير مسترجع.\n2- الحجز غير قابل للتعديل.\n3- التواجد بالمطار قبل الرحلة 3 ساعات.\n4- لابد أن يكون جواز السفر ساري 6 أشهر على الأقل من تاريخ رحلة العودة.\n5- في حالة عدم اكتمال إجراءات البصمة البيومترية، برجاء الحضور للمطار قبل 4 ساعات على الأقل من وقت المغادرة لتجنب فقدان الرحلة.\n6- في حالة السفر بالبطاقة المدنية، يرجى مراعاة الآتي لتجنب أي حظر بالمطار: أن يكون جواز السفر ساري "6 أشهر أو أقل من تاريخ العودة" وغير مفقود، أو تم سحبه.\n7- التأشيرة ومتطلبات السفر مسؤولية المسافر.`;
+  let t=`✅ قوانين الحجوزات:\n\n1- الحجز غير قابل للاسترجاع.\n2- الحجز غير قابل للتعديل.\n3- التواجد بالمطار قبل الرحلة لمدة 3 ساعات، سواء برحلة الذهاب أو العودة.\n4- لابد أن يكون تاريخ انتهاء جواز السفر أو البطاقة المدنية 6 أشهر على الأقل من تاريخ رحلة العودة.\n5- في حالة عدم اكتمال إجراءات البصمة البيومترية، يرجى الحضور إلى المطار قبل 4 ساعات على الأقل من موعد المغادرة لتجنب فقدان الرحلة.\n6- في حالة السفر بالبطاقة المدنية، يرجى مراعاة الآتي لتجنب أي حظر بالمطار: أن يكون جواز السفر ساريًا، وغير مفقود، أو تم سحبه.\n7- التأشيرة ومتطلبات السفر مسؤولية المسافر.\n8- تخضع خدمة الأسرّة والطلبات الخاصة لمدى التوفر لدى الفندق عند تسجيل الوصول.`;
   navigator.clipboard.writeText(t).then(()=>showToast("✅ تم نسخ القوانين")).catch(()=>showToast("❌ تعذّر النسخ"));
 }
 
@@ -1156,7 +1347,7 @@ function calcNights(hid){
 }
 
 function buildHotelHTML(hid){
-  return `<button class="remove-btn" onclick="removeHotel(${hid})">✕ حذف</button><div style="font-weight:800;font-size:13px;color:#60a5fa;margin-bottom:10px;"><i class="fa-solid fa-hotel"></i> فندق</div><div class="section-label" style="margin-top:0;">اسم الفندق</div><input id="hotelName_${hid}" placeholder="مثال: Hilton Istanbul" oninput="saveToStorage()"><div class="section-label">عنوان الفندق</div><input id="hotelAddress_${hid}" placeholder="مثال: Sheikh Zayed Road, Dubai" oninput="saveToStorage()"><div class="row" style="margin-top:8px;"><div><div class="section-label" style="margin-top:0;">تسجيل الدخول</div><input id="hotelCheckIn_${hid}" placeholder="مثال: 10 يونيو 2026" oninput="calcNights(${hid});saveToStorage()"></div><div><div class="section-label" style="margin-top:0;">تسجيل الخروج</div><input id="hotelCheckOut_${hid}" placeholder="مثال: 13 يونيو 2026" oninput="calcNights(${hid});saveToStorage()"></div></div><div id="nightsResult_${hid}" style="font-size:13px;color:#4ade80;margin-top:6px;min-height:18px;font-weight:600;" data-text=""></div><div id="roomsContainer_${hid}"></div><button class="add-btn" onclick="addRoom(${hid})" style="margin-top:12px;"><i class="fa-solid fa-plus"></i> إضافة غرفة</button>`;
+  return `<button class="remove-btn" onclick="removeHotel(${hid})">✕ حذف</button><div style="font-weight:800;font-size:13px;color:var(--accent-soft-text);margin-bottom:10px;"><i class="fa-solid fa-hotel"></i> فندق</div><div class="section-label" style="margin-top:0;">اسم الفندق</div><input id="hotelName_${hid}" placeholder="مثال: Hilton Istanbul" oninput="saveToStorage()"><div class="section-label">عنوان الفندق</div><input id="hotelAddress_${hid}" placeholder="مثال: Sheikh Zayed Road, Dubai" oninput="saveToStorage()"><div class="row" style="margin-top:8px;"><div><div class="section-label" style="margin-top:0;">تسجيل الدخول</div><input id="hotelCheckIn_${hid}" placeholder="مثال: 10 يونيو 2026" oninput="calcNights(${hid});saveToStorage()"></div><div><div class="section-label" style="margin-top:0;">تسجيل الخروج</div><input id="hotelCheckOut_${hid}" placeholder="مثال: 13 يونيو 2026" oninput="calcNights(${hid});saveToStorage()"></div></div><div id="nightsResult_${hid}" style="font-size:13px;color:#4ade80;margin-top:6px;min-height:18px;font-weight:600;" data-text=""></div><div id="roomsContainer_${hid}"></div><button class="add-btn" onclick="addRoom(${hid})" style="margin-top:12px;"><i class="fa-solid fa-plus"></i> إضافة غرفة</button>`;
 }
 function buildRoomHTML(hid,rid){
   return `<button class="remove-btn" onclick="removeRoom(${hid},${rid})">✕ حذف</button><div style="font-weight:700;font-size:12px;color:#475569;margin-bottom:8px;">🛏 غرفة ${rid}</div><div class="section-label" style="margin-top:0;">مسمى الغرفة</div><input id="roomName_${hid}_${rid}" placeholder="مثال: غرفة ديلوكس / جناح عائلي" oninput="saveToStorage()"><div class="section-label">عدد البالغين</div><input id="roomAdults_${hid}_${rid}" type="number" min="1" value="2" oninput="saveToStorage()"><div class="section-label">الأطفال وأعمارهم</div><input id="roomChildren_${hid}_${rid}" placeholder="اتركها فارغة إن لم يكن هناك أطفال" oninput="saveToStorage()"><div class="section-label">الوجبات</div><select id="roomMeals_${hid}_${rid}" onchange="saveToStorage()"><option value="شامل الإفطار">شامل الإفطار</option><option value="إفطار وعشاء">إفطار وعشاء</option><option value="شامل الوجبات">شامل الوجبات</option><option value="بدون وجبات">بدون وجبات</option><option value="All Inclusive">All Inclusive</option></select>`;
@@ -1193,6 +1384,41 @@ function to12(t){
   let p=periodLabel(h);
   let h12=h%12; if(h12===0) h12=12;
   return`${h12<10?"0"+h12:h12}:${m} ${p}`;
+}
+
+/* ============================================================
+   LCC TIME FORMATTING — the LCC fields are free-typed text
+   ("09:05 ص", "2:40 العصر", "18:55"...). We parse whatever the
+   user typed into an hour/minute, then run it through the same
+   periodLabel() used everywhere else so LCC offers get the exact
+   same standardized Arabic time-of-day wording.
+============================================================ */
+function parseLccTime(str){
+  if(!str) return null;
+  let s=String(str).trim();
+  let m=s.match(/(\d{1,2})[:٫.\s]+(\d{2})|(\d{1,2})/);
+  if(!m) return null;
+  let h,min;
+  if(m[1]!==undefined){ h=parseInt(m[1]); min=parseInt(m[2]); }
+  else { h=parseInt(m[3]); min=0; }
+  if(isNaN(h)) return null;
+  if(isNaN(min)) min=0;
+  // JS regex \b is ASCII-only and unreliable around Arabic letters, so we
+  // check standalone ص/م tokens by splitting on whitespace instead.
+  let tokens=s.split(/\s+/);
+  let isAM=/فجر|صباح/.test(s)||tokens.includes("ص");
+  let isPM=/ظهر|عصر|مساء/.test(s)||tokens.includes("م");
+  if(isPM&&h<12) h+=12;
+  if(isAM&&h===12) h=0;
+  if(h>23||min>59) return null;
+  return{h,min};
+}
+function formatLccTime(str){
+  let t=parseLccTime(str);
+  if(!t) return str||"";
+  let h12=t.h%12; if(h12===0) h12=12;
+  let mm=String(t.min).padStart(2,"0");
+  return`${h12<10?"0"+h12:h12}:${mm} ${periodLabel(t.h)}`;
 }
 
 function calcLayover(a,d){
@@ -1482,13 +1708,18 @@ async function generate(){
   } else if(isLCC){
     lccData={
       airline:document.getElementById("lccAirlineName").value.trim(),
+      from:document.getElementById("lccFrom").value.trim(),
+      to:document.getElementById("lccTo").value.trim(),
       goDate:document.getElementById("lccGoDate").value.trim(),
       goTime:document.getElementById("lccGoTime").value.trim(),
+      backFrom:document.getElementById("lccBackFrom").value.trim(),
+      backTo:document.getElementById("lccBackTo").value.trim(),
       backDate:document.getElementById("lccBackDate").value.trim(),
       backTime:document.getElementById("lccBackTime").value.trim(),
-      weight:document.getElementById("lccWeight").value.trim()
+      weight:document.getElementById("lccWeight").value.trim(),
+      extraSegments:getLccExtraSegments()
     };
-    hasFlights=!!(lccData.airline||lccData.goDate||lccData.goTime||lccData.backDate||lccData.backTime);
+    hasFlights=!!(lccData.airline||lccData.goDate||lccData.goTime||lccData.backDate||lccData.backTime||lccData.extraSegments.length);
   } else {
     hasFlights=lines.length>0;
   }
@@ -1511,13 +1742,14 @@ async function generate(){
     });
   }
   let destCode=trips[0]&&trips[0][trips[0].length-1].toCode;
-  let dest=destInput||(isLCC?"":(cities[destCode]||airports[destCode]||destCode||""));
+  let lccFinalDest=lccData&&lccData.extraSegments&&lccData.extraSegments.length?(lccData.extraSegments[lccData.extraSegments.length-1].to||lccData.to):(lccData&&lccData.to);
+  let dest=destInput||(isLCC?(lccFinalDest||""):(cities[destCode]||airports[destCode]||destCode||""));
   let priceVal=document.getElementById("price").value.trim();
   let currLabel=currentCurrencyName;
   let priceText;
   if(priceVal){
     if(hasHotel&&hasFlights) priceText=`السعر شامل "الطيران والفندق" للشخص الواحد: ${priceVal} ${currLabel}`;
-    else if(hasHotel) priceText=`السعر شامل "الفندق" للشخص الواحد: ${priceVal} ${currLabel}`;
+    else if(hasHotel) priceText=`السعر الإجمالي: ${priceVal} ${currLabel}`;
     else priceText=`السعر: ${priceVal} ${currLabel} للشخص الواحد`;
   } else {
     priceText="السعر والإمكانية غير ثابتين لحين إتمام الحجز";
@@ -1525,33 +1757,55 @@ async function generate(){
   let goB=document.getElementById("goBags").value,goW=document.getElementById("goWeight").value;
   let backB=document.getElementById("backBags").value,backW=document.getElementById("backWeight").value;
   let icon=hasFlights&&hasHotel?"✈️🏨":hasFlights?"✈️":"🏨";
-  let html=`<div class="title">${icon} عرض رحلة ${dest}   Q.g من كيوجو  ${icon}</div>`;
+  let html=(hasHotel&&!hasFlights)
+    ?`<div class="title">🏨 عرض الفندق ${dest}   Q.g من كيوجو  🏨</div>`
+    :`<div class="title">${icon} عرض رحلة ${dest}   Q.g من كيوجو  ${icon}</div>`;
   if(hasHotel&&hotels[0].checkIn&&hotels[0].checkOut){
     html+=`<div class="date-range-line" style="text-align:center;font-size:13px;color:#38bdf8;font-weight:800;margin-bottom:10px;">[ من تاريخ: ${hotels[0].checkIn} إلى ${hotels[0].checkOut} ]</div>`;
   }
   let tT=["الذهاب","العودة","الرحلة الثالثة","الرحلة الرابعة","الرحلة الخامسة","الرحلة السادسة"];
   let lT=["الرحلة الأولى","الرحلة الثانية","الرحلة الثالثة","الرحلة الرابعة","الرحلة الخامسة","الرحلة السادسة"];
   if(hasFlights&&isLCC){
-    let isRoundTrip=!!(lccData.backDate||lccData.backTime);
-    html+=`<div class="line"></div>`;
+    let isRoundTrip=lccTripType==="roundtrip"&&!!(lccData.backDate||lccData.backTime||lccData.backFrom||lccData.backTo);
+    let extraSegs=lccTripType==="multicity"?(lccData.extraSegments||[]):[];
+    let isMultiCity=extraSegs.length>0;
+    let weightNum=(lccData.weight.match(/\d+/)||[])[0];
+    let weightLine=weightNum?`${weightNum} كجم حقيبة شحن + 7 كجم حقيبة يد بالطائرة${(isRoundTrip||isMultiCity)?' (بالذهاب والعودة)':''} لكل مسافر`:'';
+    // Build the ordered list of legs: first segment, then any extra multi-city
+    // segments, then the return leg. The return leg supports "open-jaw"
+    // itineraries (e.g. fly into Jeddah, return from Madinah) via its own
+    // optional from/to fields — falling back to a simple reverse of the
+    // route when left blank.
+    let legs=[{from:lccData.from,to:lccData.to,date:lccData.goDate,time:lccData.goTime}];
+    extraSegs.forEach(s=>legs.push({from:s.from,to:s.to,date:s.date,time:s.time}));
     if(isRoundTrip){
-      html+=`<div class="item leg-title">🛫 الذهاب</div>`;
-      html+=lccData.airline?`<div class="item">${lccData.airline}</div>`:'';
-    } else {
-      html+=`<div class="item leg-title">🛫 ${lccData.airline||''}</div>`;
+      let lastTo=legs[legs.length-1].to||lccData.to;
+      let backFrom=lccData.backFrom||lastTo;
+      let backTo=lccData.backTo||lccData.from;
+      legs.push({from:backFrom,to:backTo,date:lccData.backDate,time:lccData.backTime,isReturn:true});
     }
-    html+=lccData.goDate?`<div class="item date-item">📅 تاريخ الرحلة: ${lccData.goDate}</div>`:'';
-    html+=lccData.goTime?`<div class="item">موعد الإقلاع ${lccData.goTime}</div>`:'';
-    html+=cabinGo?`<div class="item">💺 درجة الحجز: ${cabinGo}</div>`:'';
-    html+=lccData.weight?`<div class="item">🧳 الوزن: ${lccData.weight}</div>`:'';
-    if(isRoundTrip){
-      html+=`<div class="line"></div><div class="item leg-title">🛫 العودة</div>`;
-      html+=lccData.airline?`<div class="item">${lccData.airline}</div>`:'';
-      html+=lccData.backDate?`<div class="item date-item">📅 تاريخ الرحلة: ${lccData.backDate}</div>`:'';
-      html+=lccData.backTime?`<div class="item">موعد الإقلاع ${lccData.backTime}</div>`:'';
-      html+=cabinBack?`<div class="item">💺 درجة الحجز: ${cabinBack}</div>`:'';
-      html+=lccData.weight?`<div class="item">🧳 الوزن: ${lccData.weight}</div>`:'';
-    }
+    let showLabels=legs.length>1;
+    legs.forEach((leg,idx)=>{
+      let hasRoute=!!(leg.from||leg.to);
+      html+=`<div class="line"></div>`;
+      let label=null;
+      if(showLabels){
+        if(leg.isReturn) label="العودة";
+        else if(idx===0&&isRoundTrip&&!isMultiCity) label="الذهاب";
+        else if(isMultiCity) label=`المحطة ${idx+1}`;
+        else label="الذهاب";
+      }
+      if(label){
+        html+=`<div class="item leg-title">🛫 ${label}</div>`;
+        if(idx===0) html+=lccData.airline?`<div class="item">${lccData.airline}</div>`:'';
+      } else {
+        html+=`<div class="item leg-title">🛫 ${lccData.airline||''}</div>`;
+      }
+      html+=hasRoute?`<div class="item">من مطار "${leg.from||'—'}" ➔ إلى مطار "${leg.to||'—'}"</div>`:'';
+      html+=leg.date?`<div class="item date-item">📅 تاريخ الرحلة: ${leg.date}</div>`:'';
+      html+=leg.time?`<div class="item">موعد الإقلاع ${formatLccTime(leg.time)}</div>`:'';
+    });
+    html+=weightLine?`<div class="item">🧳 ${weightLine}</div>`:'';
   } else if(hasFlights){
     trips.forEach((trip,idx)=>{
       let isGo=idx===0,bc=isGo?goB:backB,wt=isGo?goW:backW;
@@ -1612,6 +1866,8 @@ async function generate(){
   html+=`<div class="line"></div><div class="item price-line" style="font-weight:800;font-size:14.5px;color:#4ade80;">💰 ${priceText}</div>`;
   if(isOmra){
     html+=`<div class="small">⚠️ ملاحظة: السعر والإمكانية غير ثابتين لحين إتمام الحجز.</div>`;
+  } else if(hasHotel&&!hasFlights){
+    html+=`<div class="small">⚠️ ملاحظة: السعر والإمكانية غير ثابتين لحين إتمام الحجز.</div><div class="small">⚠️ ملاحظة: السعر الإجمالي يشمل " السعر الأساسي + الضرائب " ، وغير شامل ضريبة السياحة بالمدينة إن وُجدت.</div>`;
   } else if(hasHotel){
     html+=`<div class="small">⚠️ ملاحظة: السعر والإمكانية غير ثابتين لحين إتمام الحجز.</div><div class="small">⚠️ ملاحظة: شامل السعر الأساسي والضرائب للفندق، وغير شامل ضريبة السياحة بالمدينة إن وُجدت.</div>`;
   } else {
