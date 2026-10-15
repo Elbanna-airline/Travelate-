@@ -146,7 +146,7 @@ html.tq-locked .tq-out{display:none!important}
 </style>
 <script id="qa-config">
 /* ===== ONE-TIME SETUP: paste your Supabase Project URL and anon public key between the quotes ===== */
-window.QA_CONFIG={url:"",key:""};
+window.QA_CONFIG={url:"https://itcqzqopurxhbxfnppra.supabase.co",key:"sb_publishable_61ALXJsxW3-bYwESltkmpA_QG4_Mmxu"};
 </script>
 <script id="tq-shared">(function(){
   var ADMIN='m.elbanna@tawasul-eg.com',LSKEY='qa-hub-shared-local-v1',readyP=null;
@@ -169,7 +169,7 @@ window.QA_CONFIG={url:"",key:""};
   function tok(){try{return localStorage.getItem('tq.token')||''}catch(e){return''}}
   async function rpc(n,body){
     var c=cfg(),r;
-    try{r=await fetch(c.url.replace(/\/$/,'')+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify(body)})}catch(e){throw deny('Shared audit service is unavailable. Check your connection.',503)}
+    try{r=await fetch(c.url.replace(/\/$/,'')+'/rest/v1/rpc/'+n,{method:'POST',headers:Object.assign({apikey:c.key,'Content-Type':'application/json'},/^eyJ/.test(c.key)?{Authorization:'Bearer '+c.key}:{}),body:JSON.stringify(body)})}catch(e){throw deny('Shared audit service is unavailable. Check your connection.',503)}
     var t=await r.text();
     if(!r.ok){var m='';try{m=JSON.parse(t).message||''}catch(e){}
       if(/^AUTH/.test(m))throw deny('Sign in again.',401);
@@ -178,7 +178,7 @@ window.QA_CONFIG={url:"",key:""};
   }
   async function sget(path){
     var c=cfg(),r;
-    try{r=await fetch(c.url.replace(/\/$/,'')+'/rest/v1/'+path,{headers:{apikey:c.key,Authorization:'Bearer '+c.key}})}catch(e){throw deny('Shared audit service is unavailable. Check your connection.',503)}
+    try{r=await fetch(c.url.replace(/\/$/,'')+'/rest/v1/'+path,{headers:Object.assign({apikey:c.key},/^eyJ/.test(c.key)?{Authorization:'Bearer '+c.key}:{})})}catch(e){throw deny('Shared audit service is unavailable. Check your connection.',503)}
     if(!r.ok)throw deny('Shared audit service is unavailable. Run supabase-setup.sql first.',503);
     return r.json();
   }
@@ -226,7 +226,7 @@ window.QA_CONFIG={url:"",key:""};
       if(c&&typeof c.use==='function'){
         try{db=await c.use('db');var u=await c.use('user');if(db&&u)uid=await u.id()}catch(e){db=null}
       }
-      var st=cfg().url?supaStore():((db&&uid)?dbStore(db,uid):localStore());
+      var st=(cfg().url&&cfg().key)?supaStore():((db&&uid)?dbStore(db,uid):localStore());
       window.qaStorageMode=st.mode;return st;
     })();
     return readyP;
@@ -296,7 +296,7 @@ window.QA_CONFIG={url:"",key:""};
     if(opts&&opts.body){try{b=JSON.parse(opts.body)}catch(e){return fail(400,'Bad request.')}}
     if(method==='POST'&&b&&b.action==='logout'){try{localStorage.removeItem('tq.token')}catch(e){}return resp(200,{ok:true})}
     if(method==='POST'&&b&&b.action==='login'){
-      if(!cfg().url)return resp(200,{ok:true});
+      if(!(cfg().url&&cfg().key))return resp(200,{ok:true});
       try{var t=await rpc('qa_login',{p_email:b.email,p_password:b.password});localStorage.setItem('tq.token',t);return resp(200,{ok:true})}
       catch(e){return fail(401,(e&&e.msg)||'Shared audit service is unavailable.')}
     }
@@ -311,7 +311,7 @@ window.QA_CONFIG={url:"",key:""};
     init().then(function(st){
       if(st.mode!=='local')return;
       var d=document.createElement('div');
-      d.textContent='Local mode: audits are saved in this browser only. Open the shared link to sync with the team.';
+      d.textContent='Local mode: Supabase is not connected. Paste the Project URL and anon key into QA_CONFIG at the top of this file.';
       d.style.cssText='position:fixed;left:12px;bottom:12px;z-index:40;max-width:320px;padding:9px 12px;border-radius:10px;background:#fff3d6;color:#8a5a00;font:600 12px/1.4 system-ui,sans-serif;box-shadow:0 6px 18px -8px rgba(0,0,0,.35)';
       document.body.appendChild(d);
     }).catch(function(){});
