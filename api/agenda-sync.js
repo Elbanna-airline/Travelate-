@@ -140,7 +140,7 @@ export default async function handler(req, res) {
   }
 
   if (!authenticated(req)) return json(res, 401, { error: 'Sign in with your sync password.' });
-  if (req.method === 'GET') {
+  if (req.method === 'GET' || (req.method === 'POST' && requestBody(req).action === 'load')) {
     try {
       const record = await readRecord();
       return json(res, 200, { state: record?.state || null, version: record?.version || null });
