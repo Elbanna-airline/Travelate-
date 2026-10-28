@@ -91,13 +91,13 @@ let lastAlert='';function checkReminder(){if(!('Notification'in window)||Notific
 <script>
 (()=> {
   const API='/api/agenda-sync', layer=document.getElementById('agendaSyncLayer'), button=document.getElementById('agendaSyncButton'), form=document.getElementById('agendaSyncForm'), pass=document.getElementById('agendaSyncPassword'), error=document.getElementById('agendaSyncError'), submit=document.getElementById('agendaSyncSubmit');
-  let version=null, ready=false, pending=false, timer=null, lastKnownVersion=null, conflict=null, userPaused=false;
+  let version=null, ready=false, pending=false, timer=null, lastKnownVersion=null, conflict=null, userPaused=false, sessionAuthenticated=false;
   const local=()=>window.AgendaSyncBridge.snapshot();
   function status(label,kind){button.textContent='Cloud sync: '+label;button.dataset.state=kind||'ok'}
   function open(message){error.textContent=message||'';layer.classList.add('open');setTimeout(()=>pass.focus(),20)}
   function close(){layer.classList.remove('open')}
   function backup(){try{localStorage.setItem('elbanna-agenda-sync-conflict-backup',JSON.stringify(local()))}catch(_){}}
-  async function request(method,body){const response=await fetch(API,{method,credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});let data={};try{data=await response.json()}catch(_){}return{response,data}}
+  async function request(method,body){const maxAttempts=method==='GET'?3:1;for(let attempt=1;attempt<=maxAttempts;attempt++){try{const response=await fetch(API,{method,credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});let data={};try{data=await response.json()}catch(_){}if(method==='GET'&&response.status>=500&&attempt<maxAttempts){await new Promise(resolve=>setTimeout(resolve,250*attempt));continue}return{response,data}}catch(error){if(attempt===maxAttempts)throw error;await new Promise(resolve=>setTimeout(resolve,250*attempt))}}}
   function chooseConflict(remote,remoteVersion,heading){
     conflict={remote,remoteVersion};ready=false;status('conflict','error');
     document.getElementById('agendaSyncTitle').textContent=heading||'Choose which version to keep';
@@ -133,29 +133,40 @@ let lastAlert='';function checkReminder(){if(!('Notification'in window)||Notific
     chooseConflict(remote,remoteVersion,'Choose which agenda to use');return false
   }
   async function connect(password){
-    submit.disabled=true;error.textContent='Connecting…';
+    submit.disabled=true;error.textContent=sessionAuthenticated?'Loading your cloud agenda…':'Connecting…';
     try{
-      const {response,data}=await request('POST',{action:'login',password});
-      if(!response.ok){error.textContent=data.error||'Could not connect. Check the password and Vercel setup.';return false}
-      pass.value='';
+      if(!sessionAuthenticated){
+        const {response,data}=await request('POST',{action:'login',password});
+        if(!response.ok){error.textContent=data.error||'Could not connect. Check the password and Vercel setup.';return false}
+        sessionAuthenticated=true;
+      }
+      pass.value='';pass.hidden=true;
       document.getElementById('agendaSyncTitle').textContent='Sync your agenda';
       document.getElementById('agendaSyncDescription').textContent='Connect this device to your private cloud agenda. Use the same password on every device.';
-      pass.hidden=false;submit.textContent='Connect and sync';submit.onclick=null;submit.type='submit';document.getElementById('agendaSyncKeepLocal')?.remove();document.getElementById('agendaSyncCancel').textContent='Keep working offline';
+      submit.textContent='Connect and sync';submit.onclick=null;submit.type='submit';document.getElementById('agendaSyncKeepLocal')?.remove();document.getElementById('agendaSyncCancel').textContent='Keep working offline';
       const loaded=await request('GET');
-      if(!loaded.response.ok){error.textContent=loaded.data.error||'Could not load cloud agenda.';return false}
+      if(!loaded.response.ok){
+        if(loaded.response.status===401){sessionAuthenticated=false;pass.hidden=false}
+        else status('offline','error');
+        error.textContent=loaded.data.error||'Could not load cloud agenda. Press Connect and sync to retry.';
+        return false
+      }
       const synced=await reconcile(loaded.data.state,loaded.data.version);
       if(synced)close();
       return synced;
-    }catch(_){error.textContent='Network error. Check your connection and try again.';return false}
-    finally{submit.disabled=false}
+    }catch(_){
+      if(sessionAuthenticated){ready=false;status('offline','error');error.textContent='Signed in, but cloud data did not load. Press Connect and sync again. Your local copy remains safe.'}
+      else error.textContent='Network error. Check your connection and try again.';
+      return false
+    }finally{submit.disabled=false}
   }
   async function check(){
     try{
       const {response,data}=await request('GET');
-      if(response.status===401){ready=false;status('sign in','error');if(!userPaused)open('Sign in once on each device with your sync password.');return}
+      if(response.status===401){ready=false;sessionAuthenticated=false;status('sign in','error');if(!userPaused)open('Sign in once on each device with your sync password.');return}
       if(!response.ok){ready=false;status('setup needed','error');if(!userPaused)open(data.error||'Cloud sync is unavailable. Check the Vercel storage configuration.');return}
       if(pending){await push(local(),version);return}
-      if(!ready){await reconcile(data.state,data.version);return}
+      if(!ready){const synced=await reconcile(data.state,data.version);if(synced&&!conflict)close();return}
       if(data.version&&data.version!==lastKnownVersion)await applyRemote(data.state,data.version)
     }catch(_){status('offline','error')}
   }
