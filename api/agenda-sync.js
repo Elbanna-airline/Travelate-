@@ -5,6 +5,8 @@ const STATE_KEY = 'elbanna:agenda:sync:v1';
 const LOCK_KEY = `${STATE_KEY}:lock`;
 const SESSION_DAYS = 30;
 const MAX_STATE_BYTES = 1024 * 1024;
+const MAX_LOGIN_ATTEMPTS = 10;
+const LOGIN_WINDOW_SECONDS = 900;
 
 function json(res, status, value) {
   res.statusCode = status;
@@ -15,7 +17,7 @@ function json(res, status, value) {
 }
 
 function configReady() {
-  return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN && process.env.AGENDA_SYNC_PASSWORD);
+  return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN && process.env.AGENDA_SYNC_PASSWORD && process.env.AGENDA_SYNC_PASSWORD.length >= 16);
 }
 
 async function redis(command) {
@@ -44,6 +46,15 @@ function safeOrigin(req) {
 
 function passwordDigest(value) {
   return crypto.createHmac('sha256', 'elbanna-agenda-sync-password-v1').update(String(value || '')).digest();
+}
+
+async function allowLogin(req) {
+  const ip = String(req.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+  const fingerprint = crypto.createHash('sha256').update(ip).digest('hex');
+  const key = `${STATE_KEY}:login:${fingerprint}`;
+  const attempts = await redis(['INCR', key]);
+  if (attempts === 1) await redis(['EXPIRE', key, LOGIN_WINDOW_SECONDS]);
+  return Number(attempts) <= MAX_LOGIN_ATTEMPTS;
 }
 
 function sign(value) {
@@ -97,12 +108,13 @@ async function withLock(callback) {
 }
 
 export default async function handler(req, res) {
-  if (!configReady()) return json(res, 503, { error: 'Cloud sync setup is incomplete. Add AGENDA_SYNC_PASSWORD and connect the existing Upstash Redis variables in Vercel.' });
+  if (!configReady()) return json(res, 503, { error: 'Cloud sync setup is incomplete. Set AGENDA_SYNC_PASSWORD to at least 16 characters and connect the existing Upstash Redis variables in Vercel.' });
   if (!safeOrigin(req)) return json(res, 403, { error: 'Cross-site request rejected.' });
 
   if (req.method === 'POST') {
     const body = requestBody(req);
     if (body.action === 'login') {
+      if (!(await allowLogin(req))) return json(res, 429, { error: 'Too many sign-in attempts. Try again in 15 minutes.' });
       const supplied = passwordDigest(body.password);
       const expected = passwordDigest(process.env.AGENDA_SYNC_PASSWORD);
       if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) return json(res, 401, { error: 'Incorrect sync password.' });
