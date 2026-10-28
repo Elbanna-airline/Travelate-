@@ -49,6 +49,110 @@ window.AgendaSyncBridge={
   apply(next){state=JSON.parse(JSON.stringify(next));localStorage.setItem(KEY,JSON.stringify(state));render()}
 };
 window.AgendaBooting=false;
+// Reminders: time-only, local-clock scheduling with an on-page alert and persistent snooze.
+(()=> {
+  const stage=document.getElementById('reminderStage');
+  if(!stage)return;
+  const css=document.createElement('style');
+  css.textContent=`
+  .reminder-stage{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(22,34,27,.48);backdrop-filter:blur(7px)}
+  .reminder-stage.is-open{display:flex;animation:reminderFade .22s ease-out}
+  .reminder-card{width:min(560px,100%);border:1px solid #e2e9df;border-radius:24px;background:linear-gradient(145deg,#fff 0%,#f8fbf6 100%);box-shadow:0 28px 90px rgba(23,40,28,.27);overflow:hidden;color:#20271f}
+  .reminder-accent{height:7px;background:linear-gradient(90deg,#386748,#76a37e,#e5b763)}
+  .reminder-content{padding:30px 32px 26px}
+  .reminder-kicker{display:flex;align-items:center;gap:9px;color:#386748;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .reminder-icon{width:38px;height:38px;border-radius:13px;background:#edf4ed;display:grid;place-items:center;font-size:19px}
+  .reminder-card h2{font-size:26px;line-height:1.22;margin:19px 0 9px;color:#20271f}
+  .reminder-task{font-size:17px;line-height:1.55;color:#465247;overflow-wrap:anywhere}
+  .reminder-meta{margin-top:16px;padding:12px 14px;border:1px solid #e5ebe2;border-radius:13px;background:#f7f9f5;color:#687367;font-size:13px}
+  .reminder-actions{display:flex;gap:11px;margin-top:24px}
+  .reminder-actions button{min-height:49px;border-radius:13px;padding:12px 18px;font-weight:700;border:1px solid #dfe7dd}
+  .reminder-done{background:#386748;color:#fff;border-color:#386748!important;flex:1}
+  .reminder-snooze{background:#fff;color:#385342;flex:1}
+  .reminder-actions button:hover{filter:brightness(.97);transform:translateY(-1px)}
+  @keyframes reminderFade{from{opacity:0}to{opacity:1}}
+  @media(max-width:520px){.reminder-content{padding:23px 20px}.reminder-card h2{font-size:23px}.reminder-actions{flex-direction:column}}
+  @media(prefers-reduced-motion:reduce){.reminder-stage.is-open{animation:none}.reminder-actions button{transition:none}}
+  `;
+  document.head.append(css);
+  const escHtml=s=>String(s??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  const dayKeyNow=()=>{const n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0')};
+  const localClock=()=>new Date().toTimeString().slice(0,5);
+  let active=null;
+  function reminderItems(){
+    const out=[];
+    (state.tasks||[]).forEach(t=>{
+      if(isTaskDone(t))return;
+      const times=[...new Set([...(Array.isArray(t.reminders)?t.reminders:[]),...(t.alarmTime?[t.alarmTime]:[])])];
+      times.forEach(time=>{
+        if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))return;
+        const key=time; const meta=t.reminderState&&(t.reminderState[key]);
+        if(meta&&meta.waiting)out.push({type:'task',task:t,time,meta});
+      });
+    });
+    if(state.dailyReminderPending?.waiting)out.push({type:'daily',time:state.reminder,meta:state.dailyReminderPending});
+    return out;
+  }
+  function paint(){
+    const item=reminderItems()[0];
+    active=item||null;
+    if(!item){stage.classList.remove('is-open');stage.innerHTML='';return}
+    const title=item.type==='daily'?'Your daily check-in':item.task.title||'Task reminder';
+    const note=item.type==='daily'
+      ?`You have ${(state.tasks||[]).filter(t=>!isTaskDone(t)).length} unfinished tasks waiting for you.`
+      :(item.task.progress||item.task.category||item.task.tag||'Your scheduled task is ready.');
+    const stamp=item.type==='daily'?item.time:(item.time+' · '+(item.task.category||item.task.tag||'Task'));
+    stage.innerHTML=`<section class="reminder-card" role="dialog" aria-modal="true" aria-labelledby="agendaReminderTitle" aria-describedby="agendaReminderDescription"><div class="reminder-accent"></div><div class="reminder-content"><div class="reminder-kicker"><span class="reminder-icon" aria-hidden="true">◷</span> Elbanna Agenda · Reminder</div><h2 id="agendaReminderTitle">${escHtml(title)}</h2><div class="reminder-task" id="agendaReminderDescription">${escHtml(note)}</div><div class="reminder-meta">${escHtml(stamp)} · This reminder stays here until you choose an action.</div><div class="reminder-actions"><button class="reminder-done" onclick="agendaReminderDone()">Done</button><button class="reminder-snooze" onclick="agendaReminderSnooze()">Remind me in 10 minutes</button></div></div></section>`;
+    stage.classList.add('is-open');
+    const done=stage.querySelector('.reminder-done'); if(done)done.focus({preventScroll:true});
+  }
+  function saveMeta(){writeAgendaState();if(typeof render==='function')render()}
+  window.agendaReminderDone=()=>{
+    if(!active)return;
+    if(active.type==='task'){active.meta.waiting=false;active.meta.snoozeUntil=0;active.meta.acknowledgedAt=new Date().toISOString();setTaskStatus(active.task.id,'done')}
+    else{active.meta.waiting=false;active.meta.snoozeUntil=0;saveMeta()}
+    paint();
+  };
+  window.agendaReminderSnooze=()=>{
+    if(!active)return;
+    active.meta.waiting=false;active.meta.snoozeUntil=Date.now()+10*60*1000;
+    if(active.type==='daily')state.dailyReminderPending=active.meta;
+    saveMeta();paint();
+    toast('Reminder postponed for 10 minutes');
+  };
+  function checkAgendaReminders(){
+    const now=Date.now(),today=dayKeyNow(),clock=localClock();let changed=false;
+    (state.tasks||[]).forEach(t=>{
+      if(isTaskDone(t))return;
+      const times=[...new Set([...(Array.isArray(t.reminders)?t.reminders:[]),...(t.alarmTime?[t.alarmTime]:[])])];
+      times.forEach(time=>{
+        if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))return;
+        t.reminderState=t.reminderState||{};let m=t.reminderState[time]||{};
+        if(m.snoozeUntil&&now>=m.snoozeUntil){m.snoozeUntil=0;m.waiting=true;changed=true}
+        else if(!m.snoozeUntil&&clock>=time&&m.firedDay!==today){m.firedDay=today;m.waiting=true;m.snoozeUntil=0;changed=true;
+          if(document.hidden&&'Notification'in window&&Notification.permission==='granted'){try{new Notification('Elbanna Agenda · Reminder',{body:t.title||'A task is due.'})}catch(_){}}
+        }
+        t.reminderState[time]=m;
+      });
+    });
+    if(state.reminder&&!isOffDay()){
+      const m=state.dailyReminderPending;
+      if(m&&m.snoozeUntil&&now>=m.snoozeUntil){m.snoozeUntil=0;m.waiting=true;changed=true}
+      else if(clock>=state.reminder&&state.reminderLastFired!==today&&(state.tasks||[]).some(t=>!isTaskDone(t))){state.reminderLastFired=today;state.dailyReminderPending={day:today,waiting:true,snoozeUntil:0};changed=true}
+    }
+    if(changed)writeAgendaState();
+    paint();
+  }
+  window.checkReminder=checkAgendaReminders;
+  if(document.visibilityState==='visible')checkAgendaReminders();
+  setInterval(checkAgendaReminders,5000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkAgendaReminders()});
+  window.addEventListener('focus',checkAgendaReminders);
+  window.addEventListener('pageshow',checkAgendaReminders);
+  window.addEventListener('online',checkAgendaReminders);
+})();
+
+
 </script>
 <script>
 // Elbanna Agenda: optional productivity views layered on the existing local app.
@@ -187,111 +291,7 @@ window.AgendaBooting=false;
 })();
 </script>
 
-<script>
-// Reminders: time-only, local-clock scheduling with an on-page alert and persistent snooze.
-(()=> {
-  const stage=document.getElementById('reminderStage');
-  if(!stage)return;
-  const css=document.createElement('style');
-  css.textContent=`
-  .reminder-stage{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(22,34,27,.48);backdrop-filter:blur(7px)}
-  .reminder-stage.is-open{display:flex;animation:reminderFade .22s ease-out}
-  .reminder-card{width:min(560px,100%);border:1px solid #e2e9df;border-radius:24px;background:linear-gradient(145deg,#fff 0%,#f8fbf6 100%);box-shadow:0 28px 90px rgba(23,40,28,.27);overflow:hidden;color:#20271f}
-  .reminder-accent{height:7px;background:linear-gradient(90deg,#386748,#76a37e,#e5b763)}
-  .reminder-content{padding:30px 32px 26px}
-  .reminder-kicker{display:flex;align-items:center;gap:9px;color:#386748;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-  .reminder-icon{width:38px;height:38px;border-radius:13px;background:#edf4ed;display:grid;place-items:center;font-size:19px}
-  .reminder-card h2{font-size:26px;line-height:1.22;margin:19px 0 9px;color:#20271f}
-  .reminder-task{font-size:17px;line-height:1.55;color:#465247;overflow-wrap:anywhere}
-  .reminder-meta{margin-top:16px;padding:12px 14px;border:1px solid #e5ebe2;border-radius:13px;background:#f7f9f5;color:#687367;font-size:13px}
-  .reminder-actions{display:flex;gap:11px;margin-top:24px}
-  .reminder-actions button{min-height:49px;border-radius:13px;padding:12px 18px;font-weight:700;border:1px solid #dfe7dd}
-  .reminder-done{background:#386748;color:#fff;border-color:#386748!important;flex:1}
-  .reminder-snooze{background:#fff;color:#385342;flex:1}
-  .reminder-actions button:hover{filter:brightness(.97);transform:translateY(-1px)}
-  @keyframes reminderFade{from{opacity:0}to{opacity:1}}
-  @media(max-width:520px){.reminder-content{padding:23px 20px}.reminder-card h2{font-size:23px}.reminder-actions{flex-direction:column}}
-  @media(prefers-reduced-motion:reduce){.reminder-stage.is-open{animation:none}.reminder-actions button{transition:none}}
-  `;
-  document.head.append(css);
-  const escHtml=s=>String(s??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
-  const dayKeyNow=()=>{const n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0')};
-  const localClock=()=>new Date().toTimeString().slice(0,5);
-  let active=null;
-  function reminderItems(){
-    const out=[];
-    (state.tasks||[]).forEach(t=>{
-      if(isTaskDone(t))return;
-      const times=[...new Set([...(Array.isArray(t.reminders)?t.reminders:[]),...(t.alarmTime?[t.alarmTime]:[])])];
-      times.forEach(time=>{
-        if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))return;
-        const key=time; const meta=t.reminderState&&(t.reminderState[key]);
-        if(meta&&meta.waiting)out.push({type:'task',task:t,time,meta});
-      });
-    });
-    if(state.dailyReminderPending?.waiting)out.push({type:'daily',time:state.reminder,meta:state.dailyReminderPending});
-    return out;
-  }
-  function paint(){
-    const item=reminderItems()[0];
-    active=item||null;
-    if(!item){stage.classList.remove('is-open');stage.innerHTML='';return}
-    const title=item.type==='daily'?'Your daily check-in':item.task.title||'Task reminder';
-    const note=item.type==='daily'
-      ?`You have ${(state.tasks||[]).filter(t=>!isTaskDone(t)).length} unfinished tasks waiting for you.`
-      :(item.task.progress||item.task.category||item.task.tag||'Your scheduled task is ready.');
-    const stamp=item.type==='daily'?item.time:(item.time+' · '+(item.task.category||item.task.tag||'Task'));
-    stage.innerHTML=`<section class="reminder-card" role="dialog" aria-modal="true" aria-labelledby="agendaReminderTitle" aria-describedby="agendaReminderDescription"><div class="reminder-accent"></div><div class="reminder-content"><div class="reminder-kicker"><span class="reminder-icon" aria-hidden="true">◷</span> Elbanna Agenda · Reminder</div><h2 id="agendaReminderTitle">${escHtml(title)}</h2><div class="reminder-task" id="agendaReminderDescription">${escHtml(note)}</div><div class="reminder-meta">${escHtml(stamp)} · This reminder stays here until you choose an action.</div><div class="reminder-actions"><button class="reminder-done" onclick="agendaReminderDone()">Done</button><button class="reminder-snooze" onclick="agendaReminderSnooze()">Remind me in 10 minutes</button></div></div></section>`;
-    stage.classList.add('is-open');
-    const done=stage.querySelector('.reminder-done'); if(done)done.focus({preventScroll:true});
-  }
-  function saveMeta(){writeAgendaState();if(typeof render==='function')render()}
-  window.agendaReminderDone=()=>{
-    if(!active)return;
-    if(active.type==='task'){active.meta.waiting=false;active.meta.snoozeUntil=0;active.meta.acknowledgedAt=new Date().toISOString();setTaskStatus(active.task.id,'done')}
-    else{active.meta.waiting=false;active.meta.snoozeUntil=0;saveMeta()}
-    paint();
-  };
-  window.agendaReminderSnooze=()=>{
-    if(!active)return;
-    active.meta.waiting=false;active.meta.snoozeUntil=Date.now()+10*60*1000;
-    if(active.type==='daily')state.dailyReminderPending=active.meta;
-    saveMeta();paint();
-    toast('Reminder postponed for 10 minutes');
-  };
-  function checkAgendaReminders(){
-    const now=Date.now(),today=dayKeyNow(),clock=localClock();let changed=false;
-    (state.tasks||[]).forEach(t=>{
-      if(isTaskDone(t))return;
-      const times=[...new Set([...(Array.isArray(t.reminders)?t.reminders:[]),...(t.alarmTime?[t.alarmTime]:[])])];
-      times.forEach(time=>{
-        if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))return;
-        t.reminderState=t.reminderState||{};let m=t.reminderState[time]||{};
-        if(m.snoozeUntil&&now>=m.snoozeUntil){m.snoozeUntil=0;m.waiting=true;changed=true}
-        else if(!m.snoozeUntil&&clock>=time&&m.firedDay!==today){m.firedDay=today;m.waiting=true;m.snoozeUntil=0;changed=true;
-          if(document.hidden&&'Notification'in window&&Notification.permission==='granted'){try{new Notification('Elbanna Agenda · Reminder',{body:t.title||'A task is due.'})}catch(_){}}
-        }
-        t.reminderState[time]=m;
-      });
-    });
-    if(state.reminder&&!isOffDay()){
-      const m=state.dailyReminderPending;
-      if(m&&m.snoozeUntil&&now>=m.snoozeUntil){m.snoozeUntil=0;m.waiting=true;changed=true}
-      else if(clock>=state.reminder&&state.reminderLastFired!==today&&(state.tasks||[]).some(t=>!isTaskDone(t))){state.reminderLastFired=today;state.dailyReminderPending={day:today,waiting:true,snoozeUntil:0};changed=true}
-    }
-    if(changed)writeAgendaState();
-    paint();
-  }
-  window.checkReminder=checkAgendaReminders;
-  if(document.visibilityState==='visible')checkAgendaReminders();
-  setInterval(checkAgendaReminders,5000);
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkAgendaReminders()});
-  window.addEventListener('focus',checkAgendaReminders);
-  window.addEventListener('pageshow',checkAgendaReminders);
-  window.addEventListener('online',checkAgendaReminders);
-})();
 
-</script>
 </body></html>
 
 
