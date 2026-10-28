@@ -97,7 +97,7 @@ let lastAlert='';function checkReminder(){if(!('Notification'in window)||Notific
   function open(message){error.textContent=message||'';layer.classList.add('open');setTimeout(()=>pass.focus(),20)}
   function close(){layer.classList.remove('open')}
   function backup(){try{localStorage.setItem('elbanna-agenda-sync-conflict-backup',JSON.stringify(local()))}catch(_){}}
-  async function request(method,body){const maxAttempts=method==='GET'?3:1;for(let attempt=1;attempt<=maxAttempts;attempt++){try{const response=await fetch(API,{method,credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});let data={};try{data=await response.json()}catch(_){}if(method==='GET'&&response.status>=500&&attempt<maxAttempts){await new Promise(resolve=>setTimeout(resolve,250*attempt));continue}return{response,data}}catch(error){if(attempt===maxAttempts)throw error;await new Promise(resolve=>setTimeout(resolve,250*attempt))}}}
+  async function request(method,body){const maxAttempts=method==='GET'||body?.action==='load'?3:1;for(let attempt=1;attempt<=maxAttempts;attempt++){try{const response=await fetch(API,{method,credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});let data={};try{data=await response.json()}catch(_){}if(method==='GET'&&response.status>=500&&attempt<maxAttempts){await new Promise(resolve=>setTimeout(resolve,250*attempt));continue}return{response,data}}catch(error){if(attempt===maxAttempts)throw error;await new Promise(resolve=>setTimeout(resolve,250*attempt))}}}
   function chooseConflict(remote,remoteVersion,heading){
     conflict={remote,remoteVersion};ready=false;status('conflict','error');
     document.getElementById('agendaSyncTitle').textContent=heading||'Choose which version to keep';
@@ -144,7 +144,7 @@ let lastAlert='';function checkReminder(){if(!('Notification'in window)||Notific
       document.getElementById('agendaSyncTitle').textContent='Sync your agenda';
       document.getElementById('agendaSyncDescription').textContent='Connect this device to your private cloud agenda. Use the same password on every device.';
       submit.textContent='Connect and sync';submit.onclick=null;submit.type='submit';document.getElementById('agendaSyncKeepLocal')?.remove();document.getElementById('agendaSyncCancel').textContent='Keep working offline';
-      const loaded=await request('GET');
+      const loaded=await request('POST',{action:'load'});
       if(!loaded.response.ok){
         if(loaded.response.status===401){sessionAuthenticated=false;pass.hidden=false}
         else status('offline','error');
@@ -162,7 +162,7 @@ let lastAlert='';function checkReminder(){if(!('Notification'in window)||Notific
   }
   async function check(){
     try{
-      const {response,data}=await request('GET');
+      const {response,data}=await request('POST',{action:'load'});
       if(response.status===401){ready=false;sessionAuthenticated=false;status('sign in','error');if(!userPaused)open('Sign in once on each device with your sync password.');return}
       if(!response.ok){ready=false;status('setup needed','error');if(!userPaused)open(data.error||'Cloud sync is unavailable. Check the Vercel storage configuration.');return}
       if(pending){await push(local(),version);return}
