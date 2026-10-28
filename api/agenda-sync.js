@@ -16,15 +16,24 @@ function json(res, status, value) {
   res.end(JSON.stringify(value));
 }
 
+function redisConfig() {
+  return {
+    url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
+  };
+}
+
 function configReady() {
-  return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN && process.env.AGENDA_SYNC_PASSWORD && process.env.AGENDA_SYNC_PASSWORD.length >= 16);
+  const redis = redisConfig();
+  return !!(redis.url && redis.token && process.env.AGENDA_SYNC_PASSWORD && process.env.AGENDA_SYNC_PASSWORD.length >= 16);
 }
 
 async function redis(command) {
-  const url = process.env.UPSTASH_REDIS_REST_URL.replace(/\/$/, '');
+  const config = redisConfig();
+  const url = config.url.replace(/\/$/, '');
   const response = await fetch(url, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${config.token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(command),
   });
   const data = await response.json();
