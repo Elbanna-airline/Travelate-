@@ -87,10 +87,7 @@ let lastAlert='';function checkReminder(){if(!('Notification'in window)||Notific
 })();
 
 </script>
-<!-- Close action dialogs after a selection -->
-<script>
-(()=>{const modal=document.getElementById('modal');if(!modal)return;modal.addEventListener('click',e=>{if(!e.target.closest('button'))return;setTimeout(()=>{if(modal.classList.contains('show'))close()},0)})})();
-</script><div class="agenda-sync-layer" id="agendaSyncLayer" role="dialog" aria-modal="true" aria-labelledby="agendaSyncTitle"><section class="agenda-sync-panel"><h2 id="agendaSyncTitle">Sync your agenda</h2><p id="agendaSyncDescription">Connect this device to your private cloud agenda. Use the same password on every device.</p><form id="agendaSyncForm"><input id="agendaSyncPassword" type="password" autocomplete="current-password" placeholder="Your sync password" required><div class="agenda-sync-error" id="agendaSyncError" role="status"></div><div class="agenda-sync-actions"><button class="btn primary" id="agendaSyncSubmit" type="submit">Connect and sync</button><button class="btn soft" id="agendaSyncCancel" type="button">Keep working offline</button></div></form></section></div>
+<div class="agenda-sync-layer" id="agendaSyncLayer" role="dialog" aria-modal="true" aria-labelledby="agendaSyncTitle"><section class="agenda-sync-panel"><h2 id="agendaSyncTitle">Sync your agenda</h2><p id="agendaSyncDescription">Connect this device to your private cloud agenda. Use the same password on every device.</p><form id="agendaSyncForm"><input id="agendaSyncPassword" type="password" autocomplete="current-password" placeholder="Your sync password" required><div class="agenda-sync-error" id="agendaSyncError" role="status"></div><div class="agenda-sync-actions"><button class="btn primary" id="agendaSyncSubmit" type="submit">Connect and sync</button><button class="btn soft" id="agendaSyncCancel" type="button">Keep working offline</button></div></form></section></div>
 <script>
 (()=> {
   const API='/api/agenda-sync', layer=document.getElementById('agendaSyncLayer'), button=document.getElementById('agendaSyncButton'), form=document.getElementById('agendaSyncForm'), pass=document.getElementById('agendaSyncPassword'), error=document.getElementById('agendaSyncError'), submit=document.getElementById('agendaSyncSubmit');
@@ -149,7 +146,7 @@ let lastAlert='';function checkReminder(){if(!('Notification'in window)||Notific
     try{
       const {response,data}=await request('GET');
       if(response.status===401){ready=false;status('sign in','error');if(!userPaused)open('Sign in once on each device with your sync password.');return}
-      if(!response.ok){ready=false;status('setup needed','error');return}
+      if(!response.ok){ready=false;status('setup needed','error');if(!userPaused)open(data.error||'Cloud sync is unavailable. Check the Vercel storage configuration.');return}
       if(!ready){await reconcile(data.state,data.version);return}
       if(data.version&&data.version!==lastKnownVersion){
         if(pending){chooseConflict(data.state,data.version,'Another device saved changes');return}
