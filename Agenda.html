@@ -115,14 +115,14 @@ window.AgendaBooting=false;
   };
   window.agendaReminderSnooze=()=>{
     if(!active)return;
-    active.meta.waiting=false;active.meta.snoozeUntil=Date.now()+10*60*1000;
+    active.meta.waiting=false;active.meta.snoozeUntil=Date.now()+10*60*1000;active.meta.desktopNotified=false;
     if(active.type==='daily')state.dailyReminderPending=active.meta;
     saveMeta();paint();
     toast('Reminder postponed for 10 minutes');
   };
   function notifyAgendaDesktop(title,body,tag){
-    if(!document.hidden||!('Notification'in window)||Notification.permission!=='granted')return;
-    try{const note=new Notification(title,{body,tag,renotify:true,requireInteraction:true});note.onclick=()=>{window.focus();note.close()}}catch(_){}
+    if(!document.hidden||!('Notification'in window)||Notification.permission!=='granted')return false;
+    try{const note=new Notification(title,{body,tag,renotify:true,requireInteraction:true});note.onclick=()=>{window.focus();note.close()};return true}catch(_){return false}
   }
   window.requestAgendaNotificationPermission=async function(){
     if(!('Notification'in window))return 'unsupported';
@@ -137,17 +137,18 @@ window.AgendaBooting=false;
       times.forEach(time=>{
         if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))return;
         t.reminderState=t.reminderState||{};let m=t.reminderState[time]||{};
-        if(m.snoozeUntil&&now>=m.snoozeUntil){m.snoozeUntil=0;m.waiting=true;changed=true;notifyAgendaDesktop('Elbanna Agenda · Reminder',t.title||'A task is due.','agenda-'+t.id+'-'+time)}
-        else if(!m.snoozeUntil&&clock>=time&&m.firedDay!==today){m.firedDay=today;m.waiting=true;m.snoozeUntil=0;changed=true;
-          notifyAgendaDesktop('Elbanna Agenda · Reminder',t.title||'A task is due.','agenda-'+t.id+'-'+time)
-        }
+        if(m.snoozeUntil&&now>=m.snoozeUntil){m.snoozeUntil=0;m.waiting=true;m.desktopNotified=false;changed=true}
+        else if(!m.snoozeUntil&&clock>=time&&m.firedDay!==today){m.firedDay=today;m.waiting=true;m.snoozeUntil=0;m.desktopNotified=false;changed=true}
+        if(m.waiting&&!m.desktopNotified&&notifyAgendaDesktop('Elbanna Agenda · Reminder',t.title||'A task is due.','agenda-'+t.id+'-'+time)){m.desktopNotified=true;changed=true}
         t.reminderState[time]=m;
       });
     });
     if(state.reminder&&!isOffDay()){
       const m=state.dailyReminderPending;
-      if(m&&m.snoozeUntil&&now>=m.snoozeUntil){m.snoozeUntil=0;m.waiting=true;changed=true;notifyAgendaDesktop('Elbanna Agenda · Daily reminder','Your daily check-in is ready.','agenda-daily-'+today)}
-      else if(clock>=state.reminder&&state.reminderLastFired!==today&&(state.tasks||[]).some(t=>!isTaskDone(t))){state.reminderLastFired=today;state.dailyReminderPending={day:today,waiting:true,snoozeUntil:0};changed=true;notifyAgendaDesktop('Elbanna Agenda · Daily reminder',`You have ${(state.tasks||[]).filter(t=>!isTaskDone(t)).length} unfinished tasks.`,'agenda-daily-'+today)}
+      if(m&&m.snoozeUntil&&now>=m.snoozeUntil){m.snoozeUntil=0;m.waiting=true;m.desktopNotified=false;changed=true}
+      else if(clock>=state.reminder&&state.reminderLastFired!==today&&(state.tasks||[]).some(t=>!isTaskDone(t))){state.reminderLastFired=today;state.dailyReminderPending={day:today,waiting:true,snoozeUntil:0,desktopNotified:false};changed=true}
+      const pending=state.dailyReminderPending;
+      if(pending?.waiting&&!pending.desktopNotified&&notifyAgendaDesktop('Elbanna Agenda · Daily reminder',`You have ${(state.tasks||[]).filter(t=>!isTaskDone(t)).length} unfinished tasks.`,'agenda-daily-'+today)){pending.desktopNotified=true;changed=true}
     }
     if(changed)writeAgendaState();
     paint();
