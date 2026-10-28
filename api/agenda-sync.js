@@ -123,12 +123,17 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     const body = requestBody(req);
     if (body.action === 'login') {
-      if (!(await allowLogin(req))) return json(res, 429, { error: 'Too many sign-in attempts. Try again in 15 minutes.' });
-      const supplied = passwordDigest(body.password);
-      const expected = passwordDigest(process.env.AGENDA_SYNC_PASSWORD);
-      if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) return json(res, 401, { error: 'Incorrect sync password.' });
-      res.setHeader('Set-Cookie', issueCookie(req));
-      return json(res, 200, { ok: true });
+      try {
+        if (!(await allowLogin(req))) return json(res, 429, { error: 'Too many sign-in attempts. Try again in 15 minutes.' });
+        const supplied = passwordDigest(body.password);
+        const expected = passwordDigest(process.env.AGENDA_SYNC_PASSWORD);
+        if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) return json(res, 401, { error: 'Incorrect sync password.' });
+        res.setHeader('Set-Cookie', issueCookie(req));
+        return json(res, 200, { ok: true });
+      } catch (error) {
+        console.error(error);
+        return json(res, 503, { error: 'Cloud storage could not be reached. Check that KV_REST_API_URL and the writable KV_REST_API_TOKEN are set for Production in Vercel and belong to the same Upstash database.' });
+      }
     }
   }
 
@@ -139,7 +144,7 @@ export default async function handler(req, res) {
       return json(res, 200, { state: record?.state || null, version: record?.version || null });
     } catch (error) {
       console.error(error);
-      return json(res, 503, { error: 'Could not load your cloud agenda.' });
+      return json(res, 503, { error: 'Cloud storage could not be reached. Check the Production KV_REST_API_URL and writable KV_REST_API_TOKEN in Vercel.' });
     }
   }
   if (req.method !== 'POST') {
@@ -170,6 +175,6 @@ export default async function handler(req, res) {
     return json(res, 200, { ok: true, version: result.version });
   } catch (error) {
     console.error(error);
-    return json(res, error.status || 503, { error: error.status === 503 ? error.message : 'Cloud sync failed. Your local agenda is still saved.' });
+    return json(res, error.status || 503, { error: error.status === 503 ? error.message : 'Cloud sync could not reach Upstash. Check the Production KV_REST_API_URL and writable KV_REST_API_TOKEN in Vercel; your local agenda is still saved.' });
   }
 }
