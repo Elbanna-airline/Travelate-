@@ -156,10 +156,7 @@ let lastAlert='';function checkReminder(){if(!('Notification'in window)||Notific
       if(!response.ok){ready=false;status('setup needed','error');if(!userPaused)open(data.error||'Cloud sync is unavailable. Check the Vercel storage configuration.');return}
       if(pending){await push(local(),version);return}
       if(!ready){await reconcile(data.state,data.version);return}
-      if(data.version&&data.version!==lastKnownVersion){
-        if(pending){chooseConflict(data.state,data.version,'Another device saved changes');return}
-        await applyRemote(data.state,data.version)
-      }
+      if(data.version&&data.version!==lastKnownVersion)await applyRemote(data.state,data.version)
     }catch(_){status('offline','error')}
   }
   window.AgendaCloud={changed(){if(!ready)return;pending=true;status('saving…','busy');clearTimeout(timer);timer=setTimeout(()=>push(local(),version),700)}};
