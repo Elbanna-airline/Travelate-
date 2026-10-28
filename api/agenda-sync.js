@@ -124,10 +124,12 @@ export default async function handler(req, res) {
     const body = requestBody(req);
     if (body.action === 'login') {
       try {
-        if (!(await allowLogin(req))) return json(res, 429, { error: 'Too many sign-in attempts. Try again in 15 minutes.' });
         const supplied = passwordDigest(body.password);
         const expected = passwordDigest(process.env.AGENDA_SYNC_PASSWORD);
-        if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) return json(res, 401, { error: 'Incorrect sync password.' });
+        if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) {
+          if (!(await allowLogin(req))) return json(res, 429, { error: 'Too many sign-in attempts. Try again in 15 minutes.' });
+          return json(res, 401, { error: 'Incorrect sync password.' });
+        }
         res.setHeader('Set-Cookie', issueCookie(req));
         return json(res, 200, { ok: true });
       } catch (error) {
