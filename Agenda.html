@@ -187,6 +187,7 @@ window.AgendaBooting=false;
 })();
 </script>
 
+<script>
 // Reminders: time-only, local-clock scheduling with an on-page alert and persistent snooze.
 (()=> {
   const stage=document.getElementById('reminderStage');
@@ -289,6 +290,8 @@ window.AgendaBooting=false;
   window.addEventListener('pageshow',checkAgendaReminders);
   window.addEventListener('online',checkAgendaReminders);
 })();
+
+</script>
 </body></html>
 
 
