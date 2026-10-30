@@ -2,181 +2,44 @@ import crypto from 'node:crypto';
 
 const COOKIE = 'elbanna_agenda_sync';
 const STATE_KEY = 'elbanna:agenda:sync:v1';
-const LOCK_KEY = `${STATE_KEY}:lock`;
+const TASKS_KEY = STATE_KEY + ':tasks:v2';
+const META_KEY = STATE_KEY + ':meta:v2';
+const IDS_KEY = STATE_KEY + ':ids:v2';
+const BACKUP_KEY = STATE_KEY + ':backup:v1';
+const MIGRATION_KEY = STATE_KEY + ':migration:v2';
 const SESSION_DAYS = 30;
 const MAX_STATE_BYTES = 1024 * 1024;
 const MAX_LOGIN_ATTEMPTS = 10;
 const LOGIN_WINDOW_SECONDS = 900;
 
-function json(res, status, value) {
-  res.statusCode = status;
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.end(JSON.stringify(value));
+function json(res, status, value) { res.statusCode=status; res.setHeader('Content-Type','application/json; charset=utf-8'); res.setHeader('Cache-Control','no-store'); res.setHeader('X-Content-Type-Options','nosniff'); res.end(JSON.stringify(value)); }
+function redisConfig(){return{url:process.env.UPSTASH_REDIS_REST_URL||process.env.KV_REST_API_URL,token:process.env.UPSTASH_REDIS_REST_TOKEN||process.env.KV_REST_API_TOKEN}}
+function configReady(){const r=redisConfig();return !!(r.url&&r.token&&process.env.AGENDA_SYNC_PASSWORD&&process.env.AGENDA_SYNC_PASSWORD.length>=16)}
+async function redis(command){const c=redisConfig(),response=await fetch(c.url.replace(/\/$/,'') ,{method:'POST',headers:{Authorization:'Bearer '+c.token,'Content-Type':'application/json'},body:JSON.stringify(command)});const data=await response.json();if(!response.ok||data.error)throw new Error('Shared storage request failed');return data.result}
+function requestBody(req){if(req.body&&typeof req.body==='object')return req.body;try{return JSON.parse(req.body||'{}')}catch{return{}}}
+function safeOrigin(req){const origin=req.headers.origin,host=req.headers.host;if(!origin||!host)return true;try{return new URL(origin).host===host}catch{return false}}
+function passwordDigest(v){return crypto.createHmac('sha256','elbanna-agenda-sync-password-v1').update(String(v||'')).digest()}
+async function allowLogin(req){const ip=String(req.headers['x-forwarded-for']||'unknown').split(',')[0].trim(),fingerprint=crypto.createHash('sha256').update(ip).digest('hex'),key=STATE_KEY+':login:'+fingerprint,attempts=await redis(['INCR',key]);if(attempts===1)await redis(['EXPIRE',key,LOGIN_WINDOW_SECONDS]);return Number(attempts)<=MAX_LOGIN_ATTEMPTS}
+function sign(v){return crypto.createHmac('sha256',process.env.AGENDA_SYNC_PASSWORD).update(v).digest('base64url')}
+function issueCookie(req){const payload=Buffer.from(JSON.stringify({exp:Date.now()+SESSION_DAYS*864e5,nonce:crypto.randomBytes(12).toString('hex')})).toString('base64url'),token=payload+'.'+sign(payload),secure=req.headers['x-forwarded-proto']==='https'?'; Secure':'';return COOKIE+'='+token+'; HttpOnly; SameSite=Strict; Path=/api/agenda-sync; Max-Age='+(SESSION_DAYS*86400)+secure}
+function authenticated(req){const raw=req.headers.cookie||'',token=raw.split(';').map(x=>x.trim()).find(x=>x.startsWith(COOKIE+'='))?.slice(COOKIE.length+1);if(!token)return false;const [payload,signature]=token.split('.');if(!payload||!signature)return false;const a=Buffer.from(signature),b=Buffer.from(sign(payload));if(a.length!==b.length||!crypto.timingSafeEqual(a,b))return false;try{const s=JSON.parse(Buffer.from(payload,'base64url').toString('utf8'));return Number.isFinite(s.exp)&&s.exp>Date.now()}catch{return false}}
+function normalizeTask(task,fallbackStamp){if(!task||typeof task!=='object'||Array.isArray(task)||typeof task.id!=='string'||!task.id||task.id.length>100)return null;let stamp=typeof task.updatedAt==='string'&&Number.isFinite(Date.parse(task.updatedAt))?new Date(task.updatedAt).toISOString():fallbackStamp;return{...task,id:task.id,updatedAt:stamp,deleted:!!task.deleted}}
+async function readTasks(){const raw=await redis(['HGETALL',TASKS_KEY]);let pairs=[];if(Array.isArray(raw)){for(let i=0;i+1<raw.length;i+=2)pairs.push([raw[i],raw[i+1]])}else if(raw&&typeof raw==='object')pairs=Object.entries(raw);return pairs.map(([id,value])=>{try{return normalizeTask(typeof value==='string'?JSON.parse(value):value,new Date(0).toISOString())}catch{return null}}).filter(Boolean)}
+async function readMeta(){const raw=await redis(['GET',META_KEY]);if(!raw)return{};try{const value=JSON.parse(raw);return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch{return{}}}
+const MERGE_LUA=`local tasks=cjson.decode(ARGV[1]); local meta=cjson.decode(ARGV[2]); local writes=0; for _,task in ipairs(tasks) do local id=tostring(task.id); local old=redis.call('HGET',KEYS[1],id); local accept=false; if not old then accept=true else local ok,prev=pcall(cjson.decode,old); if not ok or tostring(task.updatedAt or '')>tostring(prev.updatedAt or '') then accept=true end end; if accept then redis.call('HSET',KEYS[1],id,cjson.encode(task)); redis.call('SADD',KEYS[3],id); writes=writes+1 end end; local oldMeta=redis.call('GET',KEYS[2]); local metaWrites=0; if not oldMeta then redis.call('SET',KEYS[2],cjson.encode(meta)); metaWrites=1 else local ok,prev=pcall(cjson.decode,oldMeta); if not ok or tostring(meta.updatedAt or '')>tostring(prev.updatedAt or '') then redis.call('SET',KEYS[2],cjson.encode(meta)); metaWrites=1 end end; return {writes,metaWrites}`;
+async function merge(tasks,meta){const taskPayload=JSON.stringify(tasks),metaPayload=JSON.stringify(meta);if(Buffer.byteLength(taskPayload+metaPayload,'utf8')>MAX_STATE_BYTES)throw Object.assign(new Error('Agenda data is too large to sync.'),{status:413});await redis(['EVAL',MERGE_LUA,'3',TASKS_KEY,META_KEY,IDS_KEY,taskPayload,metaPayload])}
+async function migrateLegacy(){if(await redis(['GET',MIGRATION_KEY]))return;const old=await redis(['GET',STATE_KEY]);if(!old){await redis(['SET',MIGRATION_KEY,'1']);return}await redis(['SET',BACKUP_KEY,old,'NX']);const existing=await redis(['HLEN',TASKS_KEY]);if(Number(existing)>0){await redis(['SET',MIGRATION_KEY,'1']);return}let record;try{record=JSON.parse(old)}catch{await redis(['SET',MIGRATION_KEY,'1']);return}const state=record?.state;if(!state||typeof state!=='object'){await redis(['SET',MIGRATION_KEY,'1']);return}const stamp=typeof record.version==='string'?record.version:(state.updatedAt||new Date(0).toISOString()),demoTitles=new Set(['Review email and messages','Set your daily priorities','Follow up on tasks and projects','Update the team']),tasks=(Array.isArray(state.tasks)?state.tasks:[]).map(t=>{const row=normalizeTask(t,stamp);if(row&&demoTitles.has(row.title)){row.deleted=true;row.updatedAt=new Date().toISOString()}return row}).filter(Boolean),meta={...state,updatedAt:state.updatedAt||stamp};delete meta.tasks;delete meta.wallet;await merge(tasks,meta);await redis(['SET',MIGRATION_KEY,'1'])}
+async function loadState(){await migrateLegacy();const [tasks,meta]=await Promise.all([readTasks(),readMeta()]);return{state:{...meta,tasks},version:meta.updatedAt||null}}
+async function mergeClient(body){let state=body.state&&typeof body.state==='object'&&!Array.isArray(body.state)?{...body.state}:{};let tasks=Array.isArray(body.tasks)?body.tasks:(Array.isArray(state.tasks)?state.tasks:[]);delete state.tasks;delete state.wallet;const fallback=new Date().toISOString();tasks=tasks.map(t=>normalizeTask(t,fallback)).filter(Boolean);state.updatedAt=typeof state.updatedAt==='string'&&Number.isFinite(Date.parse(state.updatedAt))?new Date(state.updatedAt).toISOString():fallback;await merge(tasks,state);return loadState()}
+export default async function handler(req,res){
+  if(!configReady())return json(res,503,{error:'Cloud sync setup is incomplete. Set AGENDA_SYNC_PASSWORD to at least 16 characters and connect the existing Upstash Redis variables in Vercel.'});
+  if(!safeOrigin(req))return json(res,403,{error:'Cross-site request rejected.'});
+  if(req.method==='POST'&&requestBody(req).action==='login'){const body=requestBody(req);try{const supplied=passwordDigest(body.password),expected=passwordDigest(process.env.AGENDA_SYNC_PASSWORD);if(supplied.length!==expected.length||!crypto.timingSafeEqual(supplied,expected)){if(!(await allowLogin(req)))return json(res,429,{error:'Too many sign-in attempts. Try again in 15 minutes.'});return json(res,401,{error:'Incorrect sync password.'})}res.setHeader('Set-Cookie',issueCookie(req));return json(res,200,{ok:true})}catch(error){console.error(error);return json(res,503,{error:'Cloud storage could not be reached. Check that writable Upstash Redis variables are set for Production in Vercel.'})}}
+  if(!authenticated(req))return json(res,401,{error:'Sign in with your sync password.'});
+  if(req.method==='GET'||(req.method==='POST'&&requestBody(req).action==='load')){try{return json(res,200,await loadState())}catch(error){console.error(error);return json(res,503,{error:'Cloud storage could not be reached. Check the Production KV_REST_API_URL and writable KV_REST_API_TOKEN in Vercel.'})}}
+  if(req.method!=='POST'){res.setHeader('Allow','GET, POST');return json(res,405,{error:'Method not allowed.'})}
+  const body=requestBody(req);if(body.action==='logout'){res.setHeader('Set-Cookie',COOKIE+'=; HttpOnly; SameSite=Strict; Path=/api/agenda-sync; Max-Age=0'+(req.headers['x-forwarded-proto']==='https'?'; Secure':''));return json(res,200,{ok:true})}
+  if(body.action!=='merge'&&body.action!=='save')return json(res,400,{error:'A valid agenda change is required.'});
+  try{return json(res,200,await mergeClient(body))}catch(error){console.error(error);return json(res,error.status||503,{error:error.status?error.message:'Cloud sync could not reach Upstash. Check the Production KV_REST_API_URL and writable KV_REST_API_TOKEN in Vercel; your local agenda is still saved.'})}
 }
 
-function redisConfig() {
-  return {
-    url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
-  };
-}
-
-function configReady() {
-  const redis = redisConfig();
-  return !!(redis.url && redis.token && process.env.AGENDA_SYNC_PASSWORD && process.env.AGENDA_SYNC_PASSWORD.length >= 16);
-}
-
-async function redis(command) {
-  const config = redisConfig();
-  const url = config.url.replace(/\/$/, '');
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${config.token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(command),
-  });
-  const data = await response.json();
-  if (!response.ok || data.error) throw new Error('Shared storage request failed');
-  return data.result;
-}
-
-function requestBody(req) {
-  if (req.body && typeof req.body === 'object') return req.body;
-  try { return JSON.parse(req.body || '{}'); } catch { return {}; }
-}
-
-function safeOrigin(req) {
-  const origin = req.headers.origin;
-  const host = req.headers.host;
-  if (!origin || !host) return true;
-  try { return new URL(origin).host === host; } catch { return false; }
-}
-
-function passwordDigest(value) {
-  return crypto.createHmac('sha256', 'elbanna-agenda-sync-password-v1').update(String(value || '')).digest();
-}
-
-async function allowLogin(req) {
-  const ip = String(req.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
-  const fingerprint = crypto.createHash('sha256').update(ip).digest('hex');
-  const key = `${STATE_KEY}:login:${fingerprint}`;
-  const attempts = await redis(['INCR', key]);
-  if (attempts === 1) await redis(['EXPIRE', key, LOGIN_WINDOW_SECONDS]);
-  return Number(attempts) <= MAX_LOGIN_ATTEMPTS;
-}
-
-function sign(value) {
-  return crypto.createHmac('sha256', process.env.AGENDA_SYNC_PASSWORD).update(value).digest('base64url');
-}
-
-function issueCookie(req) {
-  const payload = Buffer.from(JSON.stringify({ exp: Date.now() + SESSION_DAYS * 864e5, nonce: crypto.randomBytes(12).toString('hex') })).toString('base64url');
-  const token = `${payload}.${sign(payload)}`;
-  const secure = req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : '';
-  return `${COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/api/agenda-sync; Max-Age=${SESSION_DAYS * 86400}${secure}`;
-}
-
-function authenticated(req) {
-  const raw = req.headers.cookie || '';
-  const token = raw.split(';').map(x => x.trim()).find(x => x.startsWith(`${COOKIE}=`))?.slice(COOKIE.length + 1);
-  if (!token) return false;
-  const [payload, signature] = token.split('.');
-  if (!payload || !signature) return false;
-  const expected = sign(payload);
-  const a = Buffer.from(signature);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return false;
-  try {
-    const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    return Number.isFinite(session.exp) && session.exp > Date.now();
-  } catch { return false; }
-}
-
-async function readRecord() {
-  const raw = await redis(['GET', STATE_KEY]);
-  if (!raw) return null;
-  const value = JSON.parse(raw);
-  if (!value || !value.state || typeof value.state !== 'object' || typeof value.version !== 'string') return null;
-  return value;
-}
-
-async function withLock(callback) {
-  const lock = crypto.randomBytes(16).toString('hex');
-  let acquired = false;
-  for (let attempt = 0; attempt < 25; attempt++) {
-    const result = await redis(['SET', LOCK_KEY, lock, 'NX', 'PX', 15000]);
-    if (result === 'OK') { acquired = true; break; }
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  if (!acquired) throw Object.assign(new Error('Shared storage is busy; try again.'), { status: 503 });
-  try { return await callback(); }
-  finally {
-    await redis(['EVAL', "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end", '1', LOCK_KEY, lock]);
-  }
-}
-
-export default async function handler(req, res) {
-  if (!configReady()) return json(res, 503, { error: 'Cloud sync setup is incomplete. Set AGENDA_SYNC_PASSWORD to at least 16 characters and connect the existing Upstash Redis variables in Vercel.' });
-  if (!safeOrigin(req)) return json(res, 403, { error: 'Cross-site request rejected.' });
-
-  if (req.method === 'POST') {
-    const body = requestBody(req);
-    if (body.action === 'login') {
-      try {
-        const supplied = passwordDigest(body.password);
-        const expected = passwordDigest(process.env.AGENDA_SYNC_PASSWORD);
-        if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) {
-          if (!(await allowLogin(req))) return json(res, 429, { error: 'Too many sign-in attempts. Try again in 15 minutes.' });
-          return json(res, 401, { error: 'Incorrect sync password.' });
-        }
-        res.setHeader('Set-Cookie', issueCookie(req));
-        return json(res, 200, { ok: true });
-      } catch (error) {
-        console.error(error);
-        return json(res, 503, { error: 'Cloud storage could not be reached. Check that KV_REST_API_URL and the writable KV_REST_API_TOKEN are set for Production in Vercel and belong to the same Upstash database.' });
-      }
-    }
-  }
-
-  if (!authenticated(req)) return json(res, 401, { error: 'Sign in with your sync password.' });
-  if (req.method === 'GET' || (req.method === 'POST' && requestBody(req).action === 'load')) {
-    try {
-      const record = await readRecord();
-      return json(res, 200, { state: record?.state || null, version: record?.version || null });
-    } catch (error) {
-      console.error(error);
-      return json(res, 503, { error: 'Cloud storage could not be reached. Check the Production KV_REST_API_URL and writable KV_REST_API_TOKEN in Vercel.' });
-    }
-  }
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'GET, POST');
-    return json(res, 405, { error: 'Method not allowed.' });
-  }
-
-  const body = requestBody(req);
-  if (body.action === 'logout') {
-    res.setHeader('Set-Cookie', `${COOKIE}=; HttpOnly; SameSite=Strict; Path=/api/agenda-sync; Max-Age=0${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}`);
-    return json(res, 200, { ok: true });
-  }
-  if (body.action !== 'save' || !body.state || typeof body.state !== 'object' || Array.isArray(body.state)) return json(res, 400, { error: 'A valid agenda state is required.' });
-  let serialized;
-  try { serialized = JSON.stringify(body.state); } catch { return json(res, 400, { error: 'Agenda state is not valid JSON.' }); }
-  if (Buffer.byteLength(serialized, 'utf8') > MAX_STATE_BYTES) return json(res, 413, { error: 'Agenda data is too large to sync.' });
-
-  try {
-    const result = await withLock(async () => {
-      const current = await readRecord();
-      const currentVersion = current?.version || null;
-      if (body.baseVersion !== currentVersion) return { conflict: true, state: current?.state || null, version: currentVersion };
-      const version = new Date().toISOString();
-      await redis(['SET', STATE_KEY, JSON.stringify({ state: body.state, version })]);
-      return { conflict: false, state: body.state, version };
-    });
-    if (result.conflict) return json(res, 409, { error: 'A newer cloud version already exists.', state: result.state, version: result.version });
-    return json(res, 200, { ok: true, version: result.version });
-  } catch (error) {
-    console.error(error);
-    return json(res, error.status || 503, { error: error.status === 503 ? error.message : 'Cloud sync could not reach Upstash. Check the Production KV_REST_API_URL and writable KV_REST_API_TOKEN in Vercel; your local agenda is still saved.' });
-  }
-}
