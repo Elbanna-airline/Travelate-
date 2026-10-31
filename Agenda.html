@@ -337,6 +337,76 @@ window.AgendaBooting=false;
 </script>
 
 
+<script>
+// Additive task description support: existing task records are preserved and given optional fields.
+(()=>{
+  const tasks=Array.isArray(state?.tasks)?state.tasks:[];
+  if(tasks.some(t=>!Array.isArray(t.descriptionUpdates)||typeof t.description!=='string')){
+    if(typeof backupAgenda==='function')backupAgenda(state,JSON.stringify({migration:'task-description-v1'}));
+    tasks.forEach(t=>{if(typeof t.description!=='string')t.description='';if(!Array.isArray(t.descriptionUpdates))t.descriptionUpdates=[]});
+    if(typeof writeAgendaState==='function')writeAgendaState();
+  }
+  const style=document.createElement('style');
+  style.textContent='.task-description,.task-update-preview{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;margin:5px 0 0;color:#58685b;font-size:13px}.task-description-label,.task-update-label{font-size:11px;font-weight:700;letter-spacing:.03em;color:#718178;margin-inline-end:5px}.task-update-preview{padding-inline-start:10px;border-inline-start:2px solid #dfe9df}.description-history{max-height:180px;overflow:auto;margin:8px 0 14px}.description-history article{border-inline-start:2px solid #dfe8df;padding:7px 10px;margin:6px 0;background:#f8faf8;border-radius:0 9px 9px 0}.description-history time{display:block;font-size:11px;color:#879187;margin-bottom:4px}.description-history p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#465448;font-size:13px}.toolkit-task-action{margin-top:8px;width:100%}';
+  document.head.append(style);
+
+  const baseEdit=window.editTask;
+  function addFields(id){
+    const task=state.tasks.find(t=>t.id===id),modal=document.getElementById('modalContent');
+    if(!task||!modal||modal.querySelector('#taskDescription'))return;
+    const anchor=modal.querySelector('.modal-actions');if(!anchor)return;
+    const section=document.createElement('section');section.className='ea-card';section.style.margin='12px 0';
+    section.innerHTML='<label class="stat-label" for="taskDescription"><b>Description</b><textarea class="field" id="taskDescription" rows="6" maxlength="20000" placeholder="Write a detailed description for this task..."></textarea></label><div style="font-size:12px;color:#849087;margin:-5px 0 12px">The description is separate from dated updates.</div><b>Updates</b><div class="description-history" id="taskDescriptionHistory"></div><label class="stat-label" for="taskUpdateInput">Add an update<textarea class="field" id="taskUpdateInput" rows="3" maxlength="5000" placeholder="Write what changed or what you completed..."></textarea></label><button type="button" class="btn soft" onclick="addTaskDescriptionUpdate(\''+id+'\')">＋ Add update</button>';
+    modal.insertBefore(section,anchor);
+    modal.querySelector('#taskDescription').value=task.description||'';
+    const history=modal.querySelector('#taskDescriptionHistory');
+    const updates=task.descriptionUpdates||[];
+    if(!updates.length)history.innerHTML='<p class="ea-muted">No updates yet.</p>';
+    updates.slice().reverse().forEach(update=>{const entry=typeof update==='string'?{text:update,updatedAt:''}:update;const article=document.createElement('article'),time=document.createElement('time'),body=document.createElement('p');time.textContent=entry.updatedAt?new Date(entry.updatedAt).toLocaleString():'Update';body.textContent=entry.text||'';article.append(time,body);history.append(article)});
+  }
+  if(typeof baseEdit==='function')window.editTask=function(id){baseEdit(id);addFields(id)};
+  const saveDescriptionFromModal=id=>{const task=state.tasks.find(t=>t.id===id),input=document.getElementById('taskDescription');if(task&&input)task.description=input.value};
+  const baseSimpleSave=window.saveTaskEdit;
+  if(typeof baseSimpleSave==='function')window.saveTaskEdit=function(id){saveDescriptionFromModal(id);return baseSimpleSave(id)};
+  const baseRichSave=window.EA?.saveEdit;
+  if(typeof baseRichSave==='function')window.EA.saveEdit=function(id){saveDescriptionFromModal(id);return baseRichSave(id)};
+  window.addTaskDescriptionUpdate=function(id){
+    const task=state.tasks.find(t=>t.id===id),description=document.getElementById('taskDescription')?.value??'',input=document.getElementById('taskUpdateInput'),text=input?.value.trim();
+    if(!task||!text)return toast('Write an update first');
+    task.description=description;task.descriptionUpdates=Array.isArray(task.descriptionUpdates)?task.descriptionUpdates:[];task.descriptionUpdates.push({id:crypto.randomUUID(),text,updatedAt:new Date().toISOString()});
+    save();window.editTask(id);toast('Task update saved');
+  };
+
+  const baseRender=window.renderTaskList;
+  if(typeof baseRender==='function')window.renderTaskList=function(){
+    baseRender();const visible=state.tasks.filter(t=>!t.deleted),rows=document.querySelectorAll('#taskList .task');
+    rows.forEach((row,index)=>{const task=visible[index],main=row.querySelector('.task-main');if(!task||!main)return;
+      if(task.description){const block=document.createElement('div');block.className='task-description';const label=document.createElement('span'),text=document.createElement('span');label.className='task-description-label';label.textContent='Description:';text.textContent=task.description;block.append(label,text);main.append(block)}
+      const updates=Array.isArray(task.descriptionUpdates)?task.descriptionUpdates:[];
+      if(updates.length){const latest=updates[updates.length-1],entry=typeof latest==='string'?{text:latest}:latest,block=document.createElement('div');block.className='task-update-preview';const label=document.createElement('span'),text=document.createElement('span');label.className='task-update-label';label.textContent='Latest update:';text.textContent=entry.text||'';block.append(label,text);main.append(block)}
+    });
+  };
+  if(typeof window.renderTaskList==='function')window.renderTaskList();
+
+  function csvCell(value){return '"'+String(value??'').replace(/"/g,'""')+'"'}
+  window.downloadTasksCsv=function(){
+    const active=state.tasks.filter(t=>!t.deleted),headers=['Task','Status','Category','Due date','Due time','Description','Progress','Subtasks','Updates'];
+    const rows=[headers,...active.map(t=>[t.title,t.status||'not_started',t.category||t.tag,t.dueDate,t.dueTime,t.description,t.progress,(t.subtasks||[]).map(s=>`${s.done?'[x]':'[ ]'} ${s.title}`).join(' | '),(t.descriptionUpdates||[]).map(u=>{const x=typeof u==='string'?{text:u}:u;return `${x.updatedAt||''} ${x.text||''}`}).join(' | ')])];
+    const blob=new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`elbanna-agenda-tasks-${day()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Tasks downloaded');
+  };
+  window.emailCompletedTasks=function(){
+    const completed=state.tasks.filter(t=>!t.deleted&&isTaskDone(t));if(!completed.length)return toast('No completed tasks to email yet');
+    const lines=completed.map((t,i)=>`${i+1}. ${t.title}${t.dueDate?` — due ${t.dueDate}`:''}${t.description?`\n   Description: ${t.description}`:''}${t.progress?`\n   Progress: ${t.progress}`:''}${t.subtasks?.length?`\n   Subtasks: ${t.subtasks.map(s=>`${s.done?'✓':'○'} ${s.title}`).join('; ')}`:''}`).join('\n\n');
+    const subject=`Completed tasks — ${day()}`,body=`Completed tasks for ${day()}:\n\n${lines}`;window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+  const toolHeading=[...document.querySelectorAll('.sidecard h3')].find(h=>h.textContent.includes('Your toolkit'));
+  const toolkit=toolHeading?.closest('.sidecard');
+  if(toolkit&&!toolkit.querySelector('.toolkit-task-action')){
+    const anchor=toolkit.querySelector('button[onclick="openWeekly()"]');
+    if(anchor){anchor.insertAdjacentHTML('afterend','<button type="button" class="btn soft toolkit-task-action" onclick="downloadTasksCsv()">Download tasks (CSV)</button><button type="button" class="btn soft toolkit-task-action" onclick="emailCompletedTasks()">Email completed tasks</button>')}
+  }
+})();
+</script>
 </body></html>
 
 
